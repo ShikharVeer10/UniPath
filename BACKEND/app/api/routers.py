@@ -11,7 +11,7 @@ from app.core.utils import extract_text_from_bytes
 #Creating a router for all prediction related endpoints
 router=APIRouter(tags=["Prediction"])
 
-#POST
+#POST -- # POST: create a new prediction entry in the system
 @router.post("/predict",
              response_model=PredictionResponse,
              summary="Predicts the admission chance using a Resume",
