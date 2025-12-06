@@ -1,6 +1,6 @@
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
-from app.schemas import PredictionResult
+from BACKEND.app.schemas.auth_schema import PredictionResult
 
 feedback_agent = Agent(
     name="Feedback Generator",

@@ -1,6 +1,6 @@
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
-from app.schemas import UserProfile
+from BACKEND.app.schemas.auth_schema import UserProfile
 
 resume_agent = Agent(
     name="Resume Parser",
