@@ -1,28 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api import prediction_router,auth_router #import from app/api/__init__.py
 
-from BACKEND.app.api.routers import router as api_router
-
-app = FastAPI(
-    title="College Admission Predictor",
-    description="AI Powered Admission probability predictor using FastAPI + MongoDB",
-    version="1.0.0",
-)
+app=FastAPI(title="UNI-PATH(College Admission Predictor)")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix="/api")
-
-
-@app.get("/", tags=["Health"])
-async def root():
-    return {
-        "project": "College Admission Predictor",
-        "status": "running",
-    }
+app.include_router(auth_router)
+app.include_router(prediction_router)
