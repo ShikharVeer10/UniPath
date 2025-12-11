@@ -59,5 +59,4 @@ class UserCRUD:
             return None
         return user
 
-# singleton for import convenience
 user = UserCRUD()
