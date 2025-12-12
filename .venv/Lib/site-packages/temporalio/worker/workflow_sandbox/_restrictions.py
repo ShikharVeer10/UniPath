@@ -14,6 +14,7 @@ import logging
 import math
 import operator
 import random
+import sys
 import types
 import warnings
 from copy import copy, deepcopy
@@ -41,6 +42,7 @@ try:
 except ImportError:
     HAVE_PYDANTIC = False
 
+import temporalio.exceptions
 import temporalio.workflow
 
 logger = logging.getLogger(__name__)
@@ -81,6 +83,21 @@ class RestrictedWorkflowAccessError(temporalio.workflow.NondeterminismError):
         )
 
 
+class UnintentionalPassthroughError(temporalio.exceptions.TemporalError):
+    """Error that occurs when a workflow unintentionally passes an import to the sandbox when
+    the import notification policy includes :py:attr:`temporalio.workflow.SandboxImportNotificationPolicy.RAISE_ON_NON_PASSTHROUGH`.
+
+    Attributes:
+        qualified_name: Fully qualified name of what was passed through to the sandbox.
+    """
+
+    def __init__(self, qualified_name: str) -> None:
+        """Create an unintentional passthrough error."""
+        super().__init__(
+            f"Module {qualified_name} was not intentionally passed through to the sandbox."
+        )
+
+
 @dataclass(frozen=True)
 class SandboxRestrictions:
     """Set of restrictions that can be applied to a sandbox."""
@@ -107,6 +124,13 @@ class SandboxRestrictions:
     Module members which cannot be accessed. This includes variables, functions,
     class methods (including __init__, etc). The check compares the against the
     fully qualified path to the item.
+    """
+
+    import_notification_policy: temporalio.workflow.SandboxImportNotificationPolicy = (
+        temporalio.workflow.SandboxImportNotificationPolicy.WARN_ON_DYNAMIC_IMPORT
+    )
+    """
+    The import notification policy to use when an import is triggered during workflow loading or execution. See :py:class:`temporalio.workflow.SandboxImportNotificationPolicy` for options.
     """
 
     passthrough_all_modules: bool = False
@@ -169,6 +193,12 @@ class SandboxRestrictions:
         """
         return dataclasses.replace(self, passthrough_all_modules=True)
 
+    def with_import_notification_policy(
+        self, policy: temporalio.workflow.SandboxImportNotificationPolicy
+    ) -> SandboxRestrictions:
+        """Create a new restriction set with the given import notification policy as the :py:attr:`import_policy`."""
+        return dataclasses.replace(self, import_notification_policy=policy)
+
 
 # We intentionally use specific fields instead of generic "matcher" callbacks
 # for optimization reasons.
@@ -181,8 +211,8 @@ class SandboxMatcher:
     instances.
     """
 
-    @staticmethod
-    def nested_child(path: Sequence[str], child: SandboxMatcher) -> SandboxMatcher:
+    @classmethod
+    def nested_child(cls, path: Sequence[str], child: SandboxMatcher) -> SandboxMatcher:
         """Create a matcher where the given child is put at the given path.
 
         Args:
@@ -194,12 +224,12 @@ class SandboxMatcher:
         """
         ret = child
         for key in reversed(path):
-            ret = SandboxMatcher(children={key: ret})
+            ret = cls(children={key: ret})
         return ret
 
     access: Set[str] = frozenset()  # type: ignore
     """Immutable set of names to match access.
-    
+
     This is often only used for pass through checks and not member restrictions.
     If this is used for member restrictions, even importing/accessing the value
     will fail as opposed to :py:attr:`use` which is for when it is used.
@@ -209,7 +239,7 @@ class SandboxMatcher:
 
     use: Set[str] = frozenset()  # type: ignore
     """Immutable set of names to match use.
-    
+
     This is best used for member restrictions on functions/classes because the
     restriction will not apply to referencing/importing the item, just when it
     is used.
@@ -245,7 +275,7 @@ class SandboxMatcher:
 
     exclude: Set[str] = frozenset()  # type: ignore
     """Immutable set of names to exclude.
-    
+
     These override anything that may have been matched elsewhere.
     """
 
@@ -304,10 +334,12 @@ class SandboxMatcher:
             if not child_matcher:
                 return None
             matcher = child_matcher
+
         if not context.is_runtime and matcher.only_runtime:
             return None
         if not matcher.match_self:
             return None
+
         return matcher
 
     def match_access(
@@ -495,44 +527,6 @@ SandboxRestrictions.passthrough_modules_with_temporal = (
     }
 )
 
-# sys.stdlib_module_names is only available on 3.10+, so we hardcode here. A
-# test will fail if this list doesn't match the latest Python version it was
-# generated against, spitting out the expected list. This is a string instead
-# of a list of strings due to black wanting to format this to one item each
-# line in a list.
-_stdlib_module_names = (
-    "__future__,_abc,_aix_support,_ast,_asyncio,_bisect,_blake2,_bootsubprocess,_bz2,_codecs,"
-    "_codecs_cn,_codecs_hk,_codecs_iso2022,_codecs_jp,_codecs_kr,_codecs_tw,_collections,"
-    "_collections_abc,_compat_pickle,_compression,_contextvars,_crypt,_csv,_ctypes,_curses,"
-    "_curses_panel,_datetime,_dbm,_decimal,_elementtree,_frozen_importlib,_frozen_importlib_external,"
-    "_functools,_gdbm,_hashlib,_heapq,_imp,_io,_json,_locale,_lsprof,_lzma,_markupbase,"
-    "_md5,_msi,_multibytecodec,_multiprocessing,_opcode,_operator,_osx_support,_overlapped,"
-    "_pickle,_posixshmem,_posixsubprocess,_py_abc,_pydecimal,_pyio,_queue,_random,_scproxy,"
-    "_sha1,_sha256,_sha3,_sha512,_signal,_sitebuiltins,_socket,_sqlite3,_sre,_ssl,_stat,"
-    "_statistics,_string,_strptime,_struct,_symtable,_thread,_threading_local,_tkinter,"
-    "_tokenize,_tracemalloc,_typing,_uuid,_warnings,_weakref,_weakrefset,_winapi,_zoneinfo,"
-    "abc,aifc,antigravity,argparse,array,ast,asynchat,asyncio,asyncore,atexit,audioop,"
-    "base64,bdb,binascii,bisect,builtins,bz2,cProfile,calendar,cgi,cgitb,chunk,cmath,cmd,"
-    "code,codecs,codeop,collections,colorsys,compileall,concurrent,configparser,contextlib,"
-    "contextvars,copy,copyreg,crypt,csv,ctypes,curses,dataclasses,datetime,dbm,decimal,"
-    "difflib,dis,distutils,doctest,email,encodings,ensurepip,enum,errno,faulthandler,fcntl,"
-    "filecmp,fileinput,fnmatch,fractions,ftplib,functools,gc,genericpath,getopt,getpass,"
-    "gettext,glob,graphlib,grp,gzip,hashlib,heapq,hmac,html,http,idlelib,imaplib,imghdr,"
-    "imp,importlib,inspect,io,ipaddress,itertools,json,keyword,lib2to3,linecache,locale,"
-    "logging,lzma,mailbox,mailcap,marshal,math,mimetypes,mmap,modulefinder,msilib,msvcrt,"
-    "multiprocessing,netrc,nis,nntplib,nt,ntpath,nturl2path,numbers,opcode,operator,optparse,"
-    "os,ossaudiodev,pathlib,pdb,pickle,pickletools,pipes,pkgutil,platform,plistlib,poplib,"
-    "posix,posixpath,pprint,profile,pstats,pty,pwd,py_compile,pyclbr,pydoc,pydoc_data,"
-    "pyexpat,queue,quopri,random,re,readline,reprlib,resource,rlcompleter,runpy,sched,"
-    "secrets,select,selectors,shelve,shlex,shutil,signal,site,smtpd,smtplib,sndhdr,socket,"
-    "socketserver,spwd,sqlite3,sre_compile,sre_constants,sre_parse,ssl,stat,statistics,"
-    "string,stringprep,struct,subprocess,sunau,symtable,sys,sysconfig,syslog,tabnanny,"
-    "tarfile,telnetlib,tempfile,termios,textwrap,this,threading,time,timeit,tkinter,token,"
-    "tokenize,tomllib,trace,traceback,tracemalloc,tty,turtle,turtledemo,types,typing,unicodedata,"
-    "unittest,urllib,uu,uuid,venv,warnings,wave,weakref,webbrowser,winreg,winsound,wsgiref,"
-    "xdrlib,xml,xmlrpc,zipapp,zipfile,zipimport,zlib,zoneinfo"
-)
-
 SandboxRestrictions.passthrough_modules_maximum = (
     SandboxRestrictions.passthrough_modules_with_temporal
     | {
@@ -541,7 +535,7 @@ SandboxRestrictions.passthrough_modules_maximum = (
         # manually setting sys.modules["os.path"]) they have certain child
         # expectations.
         v
-        for v in _stdlib_module_names.split(",")
+        for v in sys.stdlib_module_names
         if v != "sys"
     }
 )
@@ -646,11 +640,18 @@ SandboxRestrictions.invalid_module_members_default = SandboxMatcher(
         # "linecache": SandboxMatcher.all_uses,
         # Restrict almost everything in OS at runtime
         "os": SandboxMatcher(
+            # As of https://github.com/python/cpython/pull/132662 in python 3.14 we have to allow os.path calls
+            # which may occur during exception tracing. See https://github.com/python/cpython/issues/140228.
+            children={
+                "path": SandboxMatcher.none
+                if sys.version_info >= (3, 14)
+                else SandboxMatcher.all
+            },
             access={"name"},
             use={"*"},
             # As of https://github.com/python/cpython/pull/112097, os.stat
             # calls are now made when displaying errors
-            exclude={"stat"},
+            exclude={"stat", "path"} if sys.version_info >= (3, 14) else {"stat"},
             # Only restricted at runtime
             only_runtime=True,
         ),
@@ -744,7 +745,8 @@ SandboxRestrictions.invalid_module_members_default = SandboxMatcher(
                 "monotonic",
                 "monotonic_ns",
                 "perf_counter",
-                "perf_counter_ns" "process_time",
+                "perf_counter_ns",
+                "process_time",
                 "process_time_ns",
                 "sleep",
                 "time",
@@ -811,6 +813,7 @@ class RestrictionContext:
     def __init__(self) -> None:
         """Create a restriction context."""
         self.is_runtime = False
+        self.in_activation = False
 
 
 @dataclass

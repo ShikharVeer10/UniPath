@@ -17,11 +17,11 @@ class TokenData(BaseModel):
 
 
 class UserOut(BaseModel):
-    #User data returned after registration or login
-    id:int
-    email:EmailStr
-    role:str
-    is_active:bool
+    # User data returned after registration or login
+    id: int
+    email: EmailStr
+    role: str
+    is_active: bool
 
     class Config:
-        orm_mode=True
+        from_attributes = True  # Pydantic v2 syntax (was orm_mode in v1)

@@ -42,6 +42,7 @@ from ._restrictions import (
     RestrictedWorkflowAccessError,
     RestrictionContext,
     SandboxRestrictions,
+    UnintentionalPassthroughError,
 )
 
 logger = logging.getLogger(__name__)
@@ -225,6 +226,17 @@ class Importer:
                     setattr(sys.modules[parent], child, sys.modules[full_name])
                 # All children of this module that are on the original sys
                 # modules but not here and are passthrough
+            else:
+                # Issue a warning if appropriate
+                if (
+                    self.restriction_context.in_activation
+                    and self._is_import_notification_policy_applied(
+                        temporalio.workflow.SandboxImportNotificationPolicy.WARN_ON_DYNAMIC_IMPORT
+                    )
+                ):
+                    warnings.warn(
+                        f"Module {full_name} was imported after initial workflow load."
+                    )
 
             # If the module is __temporal_main__ and not already in sys.modules,
             # we load it from whatever file __main__ was originally in
@@ -282,6 +294,17 @@ class Importer:
                 break
         return True
 
+    def _is_import_notification_policy_applied(
+        self, policy: temporalio.workflow.SandboxImportNotificationPolicy
+    ) -> bool:
+        override_policy = (
+            temporalio.workflow.unsafe.current_import_notification_policy_override()
+        )
+        if override_policy:
+            return policy in override_policy
+
+        return policy in self.restrictions.import_notification_policy
+
     def _maybe_passthrough_module(self, name: str) -> Optional[types.ModuleType]:
         # If imports not passed through and all modules are not passed through
         # and name not in passthrough modules, check parents
@@ -289,6 +312,18 @@ class Importer:
             not temporalio.workflow.unsafe.is_imports_passed_through()
             and not self.module_configured_passthrough(name)
         ):
+            if self._is_import_notification_policy_applied(
+                temporalio.workflow.SandboxImportNotificationPolicy.RAISE_ON_UNINTENTIONAL_PASSTHROUGH
+            ):
+                raise UnintentionalPassthroughError(name)
+
+            if self._is_import_notification_policy_applied(
+                temporalio.workflow.SandboxImportNotificationPolicy.WARN_ON_UNINTENTIONAL_PASSTHROUGH
+            ):
+                warnings.warn(
+                    f"Module {name} was not intentionally passed through to the sandbox."
+                )
+
             return None
         # Do the pass through
         with self._unapplied():
@@ -454,7 +489,7 @@ class _ThreadLocalSysModules(
     ) -> Dict[str, types.ModuleType]:
         if sys.version_info < (3, 9):
             raise NotImplementedError
-        return self.current.__or__(other)
+        return self.current.__or__(other)  # type: ignore[operator]
 
     def __ior__(
         self, other: Mapping[str, types.ModuleType]

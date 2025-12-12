@@ -23,21 +23,19 @@ from ._common import (
     Link,
     OperationError,
     OperationErrorState,
-    OperationInfo,
-    OperationState,
     OutputT,
 )
 from ._serializer import Content, LazyValue
-from ._service import Operation, ServiceDefinition, service
+from ._service import Operation, OperationDefinition, ServiceDefinition, service
 from ._util import (
-    get_operation_definition,
+    get_operation,
     get_service_definition,
-    set_operation_definition,
+    set_operation,
 )
 
 __all__ = [
     "Content",
-    "get_operation_definition",
+    "get_operation",
     "get_service_definition",
     "handler",
     "HandlerError",
@@ -46,12 +44,11 @@ __all__ = [
     "LazyValue",
     "Link",
     "Operation",
+    "OperationDefinition",
     "OperationError",
     "OperationErrorState",
-    "OperationInfo",
-    "OperationState",
     "OutputT",
     "service",
     "ServiceDefinition",
-    "set_operation_definition",
+    "set_operation",
 ]
