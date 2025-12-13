@@ -19,5 +19,5 @@ class UserOut(BaseModel):
     is_active:bool
     created_at:datetime
 
-    class config:
-        orm_mode=True
+    class Config:
+        from_attributes=True

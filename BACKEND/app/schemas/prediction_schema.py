@@ -10,7 +10,7 @@ class ApplicantCreate(BaseModel):
     resume_text:Optional[str]=None
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "Alice",
                 "cgpa": 9.1,
@@ -22,13 +22,26 @@ class ApplicantCreate(BaseModel):
         }
 
 
+class PredictionCreate(BaseModel):
+    """Schema for creating a prediction/application record"""
+    user_id: Optional[int] = None
+    name: str
+    cgpa: float
+    test_score: Optional[float] = None
+    target_college: Optional[str] = None
+    major: Optional[str] = None
+    resume_text: Optional[str] = None
+    admission_chance: float
+    reasoning: str
+
+
 class PredictionResponse(BaseModel):
     admission_chance: float = Field(..., ge=0.0, le=1.0)
     reasoning: str
     raw_prediction: Optional[Dict[str, Any]] = {}
 
     class Config:
-        orm_mode = True  # allows returning ORM objects directly (not required but useful)
+        from_attributes = True
 
 
 class ApplicationOut(BaseModel):
@@ -43,4 +56,4 @@ class ApplicationOut(BaseModel):
     created_at: Optional[str] = None  
 
     class Config:
-        orm_mode = True
+        from_attributes = True

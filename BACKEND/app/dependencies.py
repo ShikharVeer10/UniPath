@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .db.engine import get_db
 from .auth import decode_access_token
-from .crud.simple_user_crud import get_user
+from .crud import user_crud
 from .models import User
 
 security = HTTPBearer()
@@ -37,7 +37,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user = get_user(db, user_id=int(user_id))
+    user = user_crud.get(db, user_id=int(user_id))
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

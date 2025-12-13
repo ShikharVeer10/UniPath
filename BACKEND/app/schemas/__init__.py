@@ -9,6 +9,12 @@ from .auth_schema import (
 from .prediction_schema import (
     ApplicantCreate,
     PredictionResponse,
+    PredictionCreate,
+)
+
+from .user_schema import (
+    UserCreate,
+    UserUpdate,
 )
 
 
@@ -20,4 +26,7 @@ __all__ = [
     "UserOut",
     "ApplicantCreate",
     "PredictionResponse",
+    "PredictionCreate",
+    "UserCreate",
+    "UserUpdate",
 ]

@@ -1,6 +1,6 @@
 # Generic CRUD base class for all database models
 from typing import Generic,TypeVar,Type,List,Optional,Any,Dict
-from sqlmodel import SQLModel,Session,Select,select
+from sqlmodel import SQLModel,Session,select
 from pydantic import BaseModel
 
 # Type variables: ModelType = DB model, CreateSchemaType/UpdateSchemaType = Pydantic schemas
