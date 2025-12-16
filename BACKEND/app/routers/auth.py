@@ -28,7 +28,7 @@ def register_user(
             detail="Email already registered"
         )
 
-    user = user_crud.create(db=db, obj_in=payload)
+    user = user_crud.create(db=db, user_in=payload)
     return {"message": "User registered successfully", "user_id": user.id}
 
 

@@ -4,8 +4,7 @@ from typing import Dict, Any, Optional
 import os
 
 from passlib.context import CryptContext
-import jwt
-from jwt import PyJWTError
+from jose import jwt, JWTError
 
 # JWT settings from environment
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production-12345")
@@ -38,5 +37,5 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return payload
-    except PyJWTError:
+    except JWTError:
         raise

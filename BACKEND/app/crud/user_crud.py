@@ -47,7 +47,7 @@ class UserCRUD:
         Update a user. `obj_in` can be a pydantic model or dict-like.
         Converts `password` field to `hashed_password` if provided.
         """
-        data = obj_in.dict(exclude_unset=True)
+        data = obj_in.model_dump(exclude_unset=True)
         try:
             # If caller passed 'password', convert it to hashed_password
             if "password" in data:
