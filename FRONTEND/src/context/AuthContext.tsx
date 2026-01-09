@@ -32,8 +32,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const accessToken = response.data.access_token
       localStorage.setItem('token', accessToken)
       setToken(accessToken)
-    } catch (error) {
-      throw error
     } finally {
       setLoading(false)
     }
@@ -45,8 +43,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await authAPI.register({ email, password, full_name: fullName })
       // Auto login after registration
       await login(email, password)
-    } catch (error) {
-      throw error
     } finally {
       setLoading(false)
     }

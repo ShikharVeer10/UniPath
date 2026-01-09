@@ -46,7 +46,8 @@ const Home = () => {
 
       animationFrame = requestAnimationFrame(animate)
       return () => cancelAnimationFrame(animationFrame)
-    }, [statsVisible, end, duration])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [statsVisible])
 
     return (
       <span>
