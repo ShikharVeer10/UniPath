@@ -15,5 +15,6 @@ module.exports = {
       { allowConstantExport: true, allowExportNames: ['useAuth'] },
     ],
     '@typescript-eslint/no-explicit-any': 'off',
+    'no-useless-catch': 'off',
   },
 }

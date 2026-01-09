@@ -9,32 +9,36 @@ const Dashboard = () => {
       label: 'Total Predictions',
       value: '0',
       change: '+0%',
-      changeType: 'neutral',
-      color: 'primary',
+      changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
+      iconBg: 'bg-primary-100',
+      iconColor: 'text-primary-600',
     },
     {
       icon: TrendingUp,
       label: 'Average Chance',
       value: '--%',
       change: '--',
-      changeType: 'neutral',
-      color: 'success',
+      changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
+      iconBg: 'bg-success-100',
+      iconColor: 'text-success-600',
     },
     {
       icon: Clock,
       label: 'Pending Reviews',
       value: '0',
       change: '--',
-      changeType: 'neutral',
-      color: 'warning',
+      changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
+      iconBg: 'bg-warning-100',
+      iconColor: 'text-warning-600',
     },
     {
       icon: Award,
       label: 'Universities',
       value: '0',
       change: '--',
-      changeType: 'neutral',
-      color: 'purple',
+      changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
     },
   ]
 
@@ -46,21 +50,24 @@ const Dashboard = () => {
       title: 'New Prediction',
       description: 'Get AI-powered admission predictions',
       link: '/predictor',
-      color: 'primary',
+      iconBg: 'bg-primary-100',
+      iconColor: 'text-primary-600',
     },
     {
       icon: Activity,
       title: 'View Analytics',
       description: 'Track your application progress',
       link: '#',
-      color: 'purple',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
     },
     {
       icon: Calendar,
       title: 'Application Timeline',
       description: 'Manage deadlines and schedules',
       link: '#',
-      color: 'amber',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
   ]
 
@@ -87,8 +94,8 @@ const Dashboard = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-center gap-4">
-                <div className={`p-3 bg-${stat.color}-100 rounded-xl`}>
-                  <stat.icon className={`w-8 h-8 text-${stat.color}-600`} />
+                <div className={`p-3 ${stat.iconBg} rounded-xl`}>
+                  <stat.icon className={`w-8 h-8 ${stat.iconColor}`} />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
@@ -127,8 +134,8 @@ const Dashboard = () => {
                     to={action.link}
                     className="group p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-300"
                   >
-                    <div className={`inline-flex p-3 bg-${action.color}-100 rounded-lg mb-3 group-hover:scale-110 transition-transform`}>
-                      <action.icon className={`w-6 h-6 text-${action.color}-600`} />
+                    <div className={`inline-flex p-3 ${action.iconBg} rounded-lg mb-3 group-hover:scale-110 transition-transform`}>
+                      <action.icon className={`w-6 h-6 ${action.iconColor}`} />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">{action.title}</h3>
                     <p className="text-sm text-gray-600">{action.description}</p>

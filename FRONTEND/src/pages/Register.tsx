@@ -17,7 +17,7 @@ const Register = () => {
 
   // Password strength calculation
   const passwordStrength = useMemo(() => {
-    if (!password) return { score: 0, label: '', color: '' }
+    if (!password) return { score: 0, label: '', color: '', textColor: '', bgColor: '', checks: null }
 
     let score = 0
     const checks = {
@@ -34,10 +34,10 @@ const Register = () => {
     score += checks.number ? 1 : 0
     score += checks.special ? 1 : 0
 
-    if (score <= 2) return { score, label: 'Weak', color: 'error', checks }
-    if (score <= 3) return { score, label: 'Fair', color: 'warning', checks }
-    if (score <= 4) return { score, label: 'Good', color: 'primary', checks }
-    return { score, label: 'Strong', color: 'success', checks }
+    if (score <= 2) return { score, label: 'Weak', color: 'error', textColor: 'text-error-600', bgColor: 'bg-error-500', checks }
+    if (score <= 3) return { score, label: 'Fair', color: 'warning', textColor: 'text-warning-600', bgColor: 'bg-warning-500', checks }
+    if (score <= 4) return { score, label: 'Good', color: 'primary', textColor: 'text-primary-600', bgColor: 'bg-primary-500', checks }
+    return { score, label: 'Strong', color: 'success', textColor: 'text-success-600', bgColor: 'bg-success-500', checks }
   }, [password])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,7 +136,7 @@ const Register = () => {
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Password strength:</span>
-                    <span className={`text-sm font-semibold text-${passwordStrength.color}-600`}>
+                    <span className={`text-sm font-semibold ${passwordStrength.textColor}`}>
                       {passwordStrength.label}
                     </span>
                   </div>
@@ -146,7 +146,7 @@ const Register = () => {
                         key={i}
                         className={`h-1.5 flex-1 rounded-full transition-colors ${
                           i < passwordStrength.score
-                            ? `bg-${passwordStrength.color}-500`
+                            ? passwordStrength.bgColor
                             : 'bg-gray-200'
                         }`}
                       />

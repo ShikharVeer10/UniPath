@@ -117,6 +117,12 @@ const Predictor = () => {
     return 'from-error-50 to-error-100'
   }
 
+  const getTextColor = (chance: number) => {
+    if (chance >= 0.7) return 'text-success-600'
+    if (chance >= 0.4) return 'text-warning-600'
+    return 'text-error-600'
+  }
+
   return (
     <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="container mx-auto max-w-6xl">
@@ -284,12 +290,12 @@ const Predictor = () => {
                             fill="none"
                             strokeDasharray={`${2 * Math.PI * 56}`}
                             strokeDashoffset={`${2 * Math.PI * 56 * (1 - result.admission_chance)}`}
-                            className={`text-${getChanceColor(result.admission_chance)}-600 transition-all duration-1000`}
+                            className={`${getTextColor(result.admission_chance)} transition-all duration-1000`}
                             strokeLinecap="round"
                           />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className={`text-4xl font-bold text-${getChanceColor(result.admission_chance)}-600`}>
+                          <span className={`text-4xl font-bold ${getTextColor(result.admission_chance)}`}>
                             {(result.admission_chance * 100).toFixed(0)}%
                           </span>
                         </div>
