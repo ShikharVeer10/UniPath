@@ -64,16 +64,16 @@ const Dashboard = () => {
               Our advanced algorithm analyzes your academic profile to provide accurate results with detailed insights and personalized recommendations.
             </p>
             
-            <Button
-              variant="primary"
-              size="lg"
-              icon={<ArrowRight className="w-5 h-5" />}
-              className="w-full sm:w-auto"
-            >
-              <Link to="/predictor" className="flex items-center gap-2">
+            <Link to="/predictor" className="inline-block">
+              <Button
+                variant="primary"
+                size="lg"
+                icon={<ArrowRight className="w-5 h-5" />}
+                className="w-full sm:w-auto"
+              >
                 Start Prediction
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </Card>
 
           <Card variant="glass" className="bg-gradient-to-br from-primary-50 via-blue-50 to-purple-50 animate-fade-in-up animate-delay-300">
@@ -162,15 +162,15 @@ const Dashboard = () => {
                 Start your journey by creating your first admission prediction. It only takes a few minutes!
               </p>
               
-              <Button
-                variant="primary"
-                size="lg"
-                icon={<ArrowRight className="w-5 h-5" />}
-              >
-                <Link to="/predictor">
+              <Link to="/predictor" className="inline-block">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon={<ArrowRight className="w-5 h-5" />}
+                >
                   Create Your First Prediction
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
           </Card>
         </div>

@@ -17,7 +17,7 @@ const Register = () => {
   const { register, loading } = useAuth()
   const navigate = useNavigate()
 
-  const calculatePasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
+  const calculatePasswordStrength = (pwd: string): { score: number; label: string; color: 'primary' | 'success' | 'warning' | 'danger' } => {
     let score = 0
     if (pwd.length >= 6) score += 20
     if (pwd.length >= 8) score += 10
@@ -118,7 +118,7 @@ const Register = () => {
                 <div className="mt-3">
                   <ProgressBar
                     value={passwordStrength.score}
-                    variant={passwordStrength.color as any}
+                    variant={passwordStrength.color}
                     size="sm"
                     label={`Password Strength: ${passwordStrength.label}`}
                     showPercentage={false}
