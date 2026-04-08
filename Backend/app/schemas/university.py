@@ -21,3 +21,16 @@ class UniversityUpdate(BaseModel):
 
 class UniversityResponse(BaseModel):
     id:int=Field()
+
+class UniversityCreate(BaseModel):
+    name:str
+    country:str
+    min_gpa:float
+    avg_gre:int
+    avg_toefl:int
+    course:str
+    tuition_fee:float
+    ranking:int
+
+
+

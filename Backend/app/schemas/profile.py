@@ -28,5 +28,8 @@ class ProfileSchema(ProfileBase):
 
     class Config:
         from_attributes=True
-
+        
+class ProfileCreate(BaseModel):
+    gpa: float
+    gre: int
     
