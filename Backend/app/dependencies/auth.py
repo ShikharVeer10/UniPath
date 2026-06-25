@@ -1,4 +1,4 @@
-from fastapi import Depends,HTTPException
+from fastapi import Depends,HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from app.core.security import decode_access_token
 from app.db.session import get_session
@@ -23,6 +23,6 @@ async def get_current_user(
         user=result.scalar_one_or_none()
 
         if user is None:
-                raise HTTPException(status_code=401,detail="User not found")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="User not found")
         
         return user
