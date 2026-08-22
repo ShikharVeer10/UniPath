@@ -1,24 +1,13 @@
-from functools import lru_cache
-from typing import Literal
-
 from pydantic_settings import BaseSettings,SettingsConfigDict
 
 class Settings(BaseSettings):
-    model_config=SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-    )
-
-    #App
-    PROJECT_NAME: str = "UniPath"
-    ENV: Literal["local","dev","staging","production"]="local"
-    API_V1_PREFIX:str="/api/v1"
-    DEBUG: bool=False
+    PROJECT_NAME:str="UniPath"
     SECRET_KEY:str
+    ALGORITHM:str="HS256"
+    ACCESS_TOKEN_EXPIRED_MINUTES:int=10080
+    DATABASE_URL:str
+    OPENAI_API_KEY:str | None=None
 
-@lru_cache
-def get_settings()->Settings:
-    return Settings()
+    model_config=SettingsConfigDict(env_file=".env",env_file_encoding="utf-8",extra="ignore")
 
-settings=get_settings()
+settings=Settings()

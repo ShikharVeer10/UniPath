@@ -1,42 +1,28 @@
 [project]
-name = "unipath-backend"
+name = "unipath"
 version = "0.1.0"
-description = "Backend for UniPath university admission predictor platform"
+description = "AI-powered university admission predictor backend"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "sqlmodel>=0.0.22",
+    "sqlalchemy>=2.0.30",
+    "asyncpg>=0.29.0",
     "alembic>=1.13.0",
-    "psycopg[binary]>=3.2.0",
     "pydantic-settings>=2.4.0",
     "pydantic-ai>=0.0.14",
     "pgvector>=0.3.0",
-    "python-jose>=3.5.0",
-    "passlib>=1.7.4",
-    "bcrypt>=5.0.0",
+    "pyjwt[crypto]>=2.9.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.9",
+    "openai>=1.40.0",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3.0",
-    "httpx>=0.28.0",
-    "ruff>=0.6.0",
-    "mypy>=1.11.0",
-]
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
-
-[tool.pytest.ini_options]
-pythonpath = ["."]
-testpaths = ["tests"]
-
-[tool.setuptools.packages.find]
-include = ["app*"]
 
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
