@@ -1,9 +1,12 @@
-from sqlmodel import Field
-from app.models.base_model import TimeStampedModel
+import uuid
+from datetime import datetime, timezone
+from sqlmodel import SQLModel, Field
 
-class User(TimeStampedModel, table=True):
-    __tablename__="users"
-    email:str=Field(unique=True,index=True,nullable=False)
-    hashed_password:str=Field(nullable=False)
-    full_name:str | None=Field(default=None)
-    is_active:bool=Field(default=True)
+class User(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+    full_name: str | None = None
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -7,7 +7,11 @@ class UserBase(BaseModel):
     full_name:str | None=None
 
 class UserCreate(BaseModel):
+    email: EmailStr
+    full_name: str | None = None
     password:str
+
+    model_config = {"extra": "forbid"}
 
 class UserResponse(BaseModel):
     id:uuid.UUID
