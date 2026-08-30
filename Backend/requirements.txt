@@ -14,3 +14,5 @@ openai>=1.40.0
 pwdlib[bcrypt]>=0.3.1
 asyncpg
 psycopg2
+python-jose[cryptography]>=3.3.0
+pydantic[email]>=2.4.0

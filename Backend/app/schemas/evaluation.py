@@ -1,4 +1,3 @@
-from app.api.v1.routers import recommendations
 from pydantic import BaseModel
 from typing import List,Dict,Any,Optional
 import datetime
@@ -22,4 +21,3 @@ class EvaluationResponse(EvaluationRequest):
 
     class Config:
         from_attributes=True
-
