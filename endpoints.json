@@ -1,0 +1,681 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniPath",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/recommendations/evaluate": {
+      "post": {
+        "tags": [
+          "Recommendations"
+        ],
+        "summary": "Evaluate Profile",
+        "operationId": "evaluate_profile_api_v1_recommendations_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentEvaluationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileEvaluationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evaluations/": {
+      "post": {
+        "tags": [
+          "evaluations"
+        ],
+        "summary": "Evaluate Profile",
+        "operationId": "evaluate_profile_api_v1_evaluations__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evaluations/history": {
+      "get": {
+        "tags": [
+          "evaluations"
+        ],
+        "summary": "Get Evaluation History",
+        "operationId": "get_evaluation_history_api_v1_evaluations_history_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvaluationResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Evaluation History Api V1 Evaluations History Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_api_v1_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_login_api_v1_auth_login_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_api_v1_auth_login_post"
+      },
+      "CategorizedUniversity": {
+        "properties": {
+          "university_name": {
+            "type": "string",
+            "title": "University Name"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Ambitious",
+              "Target",
+              "Safe"
+            ],
+            "title": "Category"
+          },
+          "acceptance_probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Acceptance Probability"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "university_name",
+          "category",
+          "acceptance_probability",
+          "rationale"
+        ],
+        "title": "CategorizedUniversity"
+      },
+      "EvaluationRequest": {
+        "properties": {
+          "target_country": {
+            "type": "string",
+            "title": "Target Country"
+          },
+          "target_program": {
+            "type": "string",
+            "title": "Target Program"
+          },
+          "cgpa": {
+            "type": "number",
+            "title": "Cgpa"
+          },
+          "gre_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gre Score"
+          },
+          "toefl_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toefl Score"
+          },
+          "research_papers": {
+            "type": "integer",
+            "title": "Research Papers",
+            "default": 0
+          },
+          "work_experience_months": {
+            "type": "integer",
+            "title": "Work Experience Months",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_country",
+          "target_program",
+          "cgpa"
+        ],
+        "title": "EvaluationRequest"
+      },
+      "EvaluationResponse": {
+        "properties": {
+          "target_country": {
+            "type": "string",
+            "title": "Target Country"
+          },
+          "target_program": {
+            "type": "string",
+            "title": "Target Program"
+          },
+          "cgpa": {
+            "type": "number",
+            "title": "Cgpa"
+          },
+          "gre_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gre Score"
+          },
+          "toefl_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toefl Score"
+          },
+          "research_papers": {
+            "type": "integer",
+            "title": "Research Papers",
+            "default": 0
+          },
+          "work_experience_months": {
+            "type": "integer",
+            "title": "Work Experience Months",
+            "default": 0
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "profile_summary": {
+            "type": "string",
+            "title": "Profile Summary"
+          },
+          "key_strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Strengths"
+          },
+          "areas_for_improvement": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Areas For Improvement"
+          },
+          "recommendations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_country",
+          "target_program",
+          "cgpa",
+          "id",
+          "profile_summary",
+          "key_strengths",
+          "areas_for_improvement",
+          "recommendations",
+          "created_at"
+        ],
+        "title": "EvaluationResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ProfileEvaluationResult": {
+        "properties": {
+          "profile_summary": {
+            "type": "string",
+            "title": "Profile Summary"
+          },
+          "key_strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Strengths"
+          },
+          "areas_for_improvement": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Areas For Improvement"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/CategorizedUniversity"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile_summary",
+          "key_strengths",
+          "areas_for_improvement",
+          "recommendations"
+        ],
+        "title": "ProfileEvaluationResult"
+      },
+      "StudentEvaluationInput": {
+        "properties": {
+          "target_country": {
+            "type": "string",
+            "title": "Target Country",
+            "description": "Destination Country"
+          },
+          "target_program": {
+            "type": "string",
+            "title": "Target Program",
+            "description": "Target Program"
+          },
+          "cgpa": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Cgpa",
+            "description": "GPA on a 10.0 scale"
+          },
+          "gre_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 340.0,
+                "minimum": 260.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gre Score",
+            "description": "GRE Score"
+          },
+          "toefl_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 120.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toefl Score",
+            "description": "TOEFL/IELTS equivalent"
+          },
+          "research_papers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Research Papers",
+            "description": "Number of published research papers",
+            "default": 0
+          },
+          "work_experience_months": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Work Experience Months",
+            "description": "Work/Internship experience in months",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_country",
+          "target_program",
+          "cgpa"
+        ],
+        "title": "StudentEvaluationInput"
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "Token"
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserCreate"
+      },
+      "UserResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
