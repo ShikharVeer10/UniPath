@@ -1,124 +1,108 @@
 # UniPath 🎓
 
-**AI-powered university admission predictor — helping students make smarter study abroad decisions.**
+AI-powered university admission predictor — helping students make smarter study-abroad decisions.
 
-UniPath is a full-stack platform inspired by products like Yocket. It helps students estimate their admission chances and create better university shortlists by using (1) historical admission outcomes, (2) multi-feature profile matching, and (3) a RAG-based AI advisor.
-
-> **Project status:** Early-stage / under active development.
+Status: Early-stage · under active development
 
 ---
 
-## 🚀 Features
+## Overview
 
-- **University Explorer**  
-  Search and filter universities by country, ranking, program, tuition, and intake season.
+UniPath is a full-stack platform that helps students estimate admission chances, build shortlists, and get personalized guidance using data-driven signals and an AI advisor (RAG). It blends historical admission outcomes with configurable scoring to provide probability estimates and contextual advice.
 
-- **Admit Predictor**  
-  Estimate admission probability based on your profile vs. historical applicants.
-
-- **Admission Statistics**  
-  View historical admit/reject counts and academic averages (GRE/CGPA/TOEFL) per program.
-
-- **AI Chat Advisor (RAG)**  
-  Get personalized recommendations and Q&A, grounded on a university knowledge base.
-
-- **Application Tracker**  
-  Track your applications from saved → submitted → decision.
-
-- **Watchlist & Notes**  
-  Bookmark universities and attach personal notes.
-
-- **Similar Profile Finder**  
-  Compare your profile to similar historical applicants.
-
-- **University Comparison**  
-  Side‑by‑side comparison of universities/programs.
+Key capabilities:
+- University explorer (search & filter)
+- Admit predictor (data + model blend)
+- Admission statistics per program
+- AI Chat Advisor (RAG) with a university knowledge base
+- Application tracker, watchlist, notes, and comparisons
 
 ---
 
-## 🛠️ Tech Stack
+## Features
 
-### Backend
-
-- **FastAPI** (Python) – API framework  
-- **SQLModel** – ORM (Pydantic + SQLAlchemy)  
-- **PostgreSQL** – Primary database  
-- **Alembic** – Database migrations  
-
-### AI / RAG
-
-- **Pydantic-AI** – Structured agent responses  
-- **OpenAI** – Chat + embeddings (configurable)  
-- **Vector Search** – pgvector (via Supabase or self-hosted Postgres)  
-
-### Dev & Deploy
-
-- **Docker / Docker Compose** – Containerized local/dev environment  
-- **GitHub Actions** – CI/CD (planned)  
-- **uv** – Python dependency management
+- University Explorer: filter by country, ranking, program, tuition, intake season
+- Admit Predictor: likelihood estimates based on similar historical applicants and a weighted scoring model
+- Admission Statistics: admit/reject counts and average scores (GRE/CGPA/TOEFL) per program
+- AI Chat Advisor (RAG): retrieval-augmented responses grounded in university/program content
+- Watchlist & Notes: bookmark universities and add personal notes
+- Similar Profile Finder & University Comparison
+- Application Tracker: saved → submitted → decision workflow
 
 ---
 
-## 🎯 How the Admit Predictor Works
+## Tech Stack
 
-UniPath blends two signals:
+Backend
+- FastAPI (Python)
+- SQLModel (Pydantic + SQLAlchemy)
+- PostgreSQL (primary database)
+- Alembic (migrations)
 
-1. **Similarity Search (data-driven):**
-    - Finds historical applicants to the same program within a score window (e.g., CGPA ±0.5, GRE ±15).
-    - Computes an admit ratio from similar profiles.
+AI / RAG
+- Pydantic-AI (structured agent responses)
+- OpenAI (chat & embeddings; provider configurable)
+- Vector search via pgvector (Supabase or self-hosted Postgres)
 
-2. **Weighted Scoring (model-driven):**
-    - Compares the user profile to program averages and computes a weighted score.
-    - Example weights (configurable):
-        - CGPA: 40%
-        - GRE: 30%
-        - TOEFL: 20%
-        - Research: 10%
-
-3. **Blending:**
-    - Example: `final = 0.60 * similarity_ratio + 0.40 * weighted_score`
-    - If there are too few similar profiles, increase weight on the scoring model.
-
-4. **Result Categories:**
-    - **Ambitious**: 0–30%
-    - **Moderate**: 30–60%
-    - **Safe**: 60–100%
-
-> **Note:** Thresholds, features, and weights are configurable and may evolve.
+Dev & Deploy
+- Docker / Docker Compose (local/dev)
+- GitHub Actions (CI/CD — planned)
+- uv (Python dependency manager)
 
 ---
 
-## 🤖 How the AI Chat Advisor Works (RAG)
+## How the Admit Predictor Works
 
-1. University/program content (descriptions, deadlines, FAQs, etc.) is chunked and embedded.
-2. User queries are embedded and matched against the knowledge base via vector similarity search.
+UniPath combines two complementary signals:
+
+1. Similarity search (data-driven)
+   - Finds historical applicants to the same program within configurable score windows (e.g., CGPA ±0.5, GRE ±15)
+   - Computes admit ratio from matched historical profiles
+
+2. Weighted scoring (model-driven)
+   - Compares the user profile against program averages using configurable feature weights (example):
+     - CGPA: 40% · GRE: 30% · TOEFL: 20% · Research: 10%
+
+3. Blending
+   - Example formula: final = 0.60 * similarity_ratio + 0.40 * weighted_score
+   - If few similar profiles exist, increase the scoring-model weight
+
+4. Result buckets (configurable)
+   - Ambitious: 0–30%
+   - Moderate: 30–60%
+   - Safe: 60–100%
+
+All thresholds, windows, and weights are configurable and intended to be tuned on real data.
+
+---
+
+## How the AI Chat Advisor (RAG) Works
+
+1. University/program content (descriptions, deadlines, FAQs) is chunked and embedded.
+2. User queries are embedded and matched against the vector store.
 3. Retrieved context + user profile are passed to the agent.
-4. The agent responds like a study‑abroad advisor, grounded in retrieved data.
+4. The agent responds as a study‑abroad advisor, grounded in the retrieved data.
 
 ---
 
-## 🧑‍💻 Getting Started (Developer Setup)
+## Getting Started (Developer)
 
-### Prerequisites
+Prerequisites
+- Python 3.12+
+- PostgreSQL (or Supabase)
+- (Optional) pgvector for RAG
+- OpenAI API key (or other provider)
+- uv installed
 
-- **Python 3.12+**
-- A **PostgreSQL** instance (or **Supabase**)
-- (Optional) **pgvector** enabled for RAG
-- An **OpenAI API key** (or other provider, if you swap it)
-- **uv** installed
-
-### Installation
-
+Clone and install
 ```bash
 git clone https://github.com/ShikharVeer10/UniPath.git
 cd UniPath
 uv sync
 ```
 
-### Environment Variables
-
-Create a `.env` file (do not commit it):
-
+Environment variables
+Create a `.env` (DO NOT commit)
 ```env
 PROJECT_NAME=UniPath
 SECRET_KEY=change-me
@@ -132,20 +116,28 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SERVICE_KEY=your-supabase-service-key
 ```
 
-### Run the API (example)
-
+Run (example)
 ```bash
-# Example only — adjust to your actual app entrypoint
+# Adjust to your project layout / entrypoint
 uvicorn app.main:app --reload
 ```
+Open API docs: http://localhost:8000/docs
 
-Open Swagger UI:
-
-- http://localhost:8000/docs
+Docker (optional)
+- A Docker Compose configuration is recommended for local development (Postgres + app + optional vector service).
 
 ---
 
-## 🗺️ Roadmap
+## Development Notes
+
+- Database: use Alembic for schema migrations
+- Vector store: pgvector extension in Postgres (or Supabase vector)
+- Config-driven: weights, thresholds, and similarity windows are configurable to support calibration
+- Tests: add unit tests for predictor logic (similarity, scoring, blending) before calibration
+
+---
+
+## Roadmap
 
 - [ ] Database schema & migrations
 - [ ] University explorer endpoints
@@ -153,19 +145,23 @@ Open Swagger UI:
 - [ ] Admit predictor engine & calibration
 - [ ] AI Chat Advisor (RAG) integration
 - [ ] User profiles, watchlist, application tracker
-- [ ] Frontend dashboard
+- [ ] Frontend dashboard & UX polish
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-PRs are welcome! For larger changes, please first open an issue describing:
+Contributions are welcome. For larger changes, open an issue describing:
 - The feature or bug
 - Expected behavior
 - Proposed implementation approach
 
+Guidelines:
+- Follow the repo's code style and test strategy
+- Use feature branches and open a PR for review
+
 ---
 
-## 📄 License
+## License
 
 MIT License
