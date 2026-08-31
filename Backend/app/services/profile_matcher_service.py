@@ -1,6 +1,7 @@
 from pathlib import Path
 from pydantic_ai import Agent
 from pydantic_ai.exceptions import ModelHTTPError
+import logging
 from app.core.config import settings
 from app.schemas.output_schema import (
     CategorizedUniversity,
@@ -30,6 +31,7 @@ evaluator_agent = Agent(
     output_type=ProfileEvaluationResult,
     system_prompt=load_system_prompt()
 )
+logger = logging.getLogger("uvicorn.error")
 class ProfileMatcherService:
     @staticmethod
     def _clamp_probability(value: float) -> float:
@@ -145,7 +147,8 @@ class ProfileMatcherService:
         try:
             result=await evaluator_agent.run(user_prompt)
             return result.data
-        except ModelHTTPError:
+        except Exception as exc:
+            logger.warning("AI evaluation unavailable; using deterministic fallback: %s", exc)
             return self._build_fallback_result(student_data, ranked_universities)
 
 profile_matcher_service=ProfileMatcherService()

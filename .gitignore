@@ -1,5 +1,12 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
 .env
-uv.lock
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.env.local
+.env*.local

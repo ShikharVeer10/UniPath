@@ -6,6 +6,16 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.api.v1.routers import api_router
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import logging
+from sqlmodel import SQLModel
+from app.db.database import engine
+# Import models so SQLModel registers every table before create_all runs.
+from app.models.user_model import User  # noqa: F401
+from app.models.evaluation import EvaluationRecord  # noqa: F401
+from app.models.university_model import University, HistoricalProfile  # noqa: F401
+
+logger = logging.getLogger("uvicorn.error")
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -16,6 +26,16 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -24,6 +44,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.exception("Database error while handling %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={"detail": "A database error occurred. Please try again later."},
@@ -31,10 +52,17 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error while handling %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={"detail": "An unexpected error occurred."}
     )
+
+@app.on_event("startup")
+async def initialize_database():
+    async with engine.begin() as connection:
+        await connection.run_sync(SQLModel.metadata.create_all)
+
 
 @app.on_event("startup")
 def configure_swagger():

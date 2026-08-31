@@ -1,4 +1,95 @@
 @import 'tailwindcss';
-:root { --background:#fbfaf8; --foreground:#242321; --card:#ffffff; --card-foreground:#242321; --muted:#f1efeb; --muted-foreground:#716d65; --border:#e7e3dc; --primary:#c95b3d; --primary-foreground:#fffaf7; --ring:#c95b3d; --radius:0.75rem; }
-@theme inline { --color-background:var(--background); --color-foreground:var(--foreground); --color-card:var(--card); --color-card-foreground:var(--card-foreground); --color-muted:var(--muted); --color-muted-foreground:var(--muted-foreground); --color-border:var(--border); --color-primary:var(--primary); --color-primary-foreground:var(--primary-foreground); --color-ring:var(--ring); --font-sans:Arial, Helvetica, sans-serif; }
-* { border-color:var(--border); } body { background:var(--background); color:var(--foreground); font-family:Arial, Helvetica, sans-serif; } input { border:1px solid var(--border); border-radius:0.5rem; background:var(--background); padding:0.75rem 0.875rem; font-weight:400; outline:none; } input:focus { border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); } ::selection { background:#f0cfc4; }
+
+:root {
+  --background: #f7f4f0;
+  --foreground: #1f2328;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #1e293b;
+  --muted: #efeae3;
+  --muted-foreground: #5d6673;
+  --border: #e7e2d9;
+  --primary: #bc5d3c;
+  --primary-foreground: #fffaf7;
+  --ring: rgba(188, 93, 60, 0.22);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+  --font-sans: 'Inter', 'Segoe UI', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(188, 93, 60, 0.08), transparent 28%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
+
+::selection {
+  background: rgba(188, 93, 60, 0.18);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0.8rem 0.9rem;
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+input:focus {
+  border-color: rgba(188, 93, 60, 0.6);
+  box-shadow: 0 0 0 4px rgba(188, 93, 60, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+input[type='range'] {
+  accent-color: var(--primary);
+}
+
+.animate-fade-up {
+  animation: fade-up 450ms ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
