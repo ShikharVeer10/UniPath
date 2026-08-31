@@ -1,6 +1,6 @@
 from pathlib import Path
 from pydantic_ai import Agent
-from pydantic_ai.exceptions import ModelAPIError
+from pydantic_ai.exceptions import ModelHTTPError
 from app.core.config import settings
 from app.schemas.output_schema import (
     CategorizedUniversity,
@@ -145,7 +145,7 @@ class ProfileMatcherService:
         try:
             result=await evaluator_agent.run(user_prompt)
             return result.data
-        except ModelAPIError:
+        except ModelHTTPError:
             return self._build_fallback_result(student_data, ranked_universities)
 
 profile_matcher_service=ProfileMatcherService()

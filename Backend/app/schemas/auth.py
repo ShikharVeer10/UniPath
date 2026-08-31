@@ -11,8 +11,8 @@ class UserResponse(BaseModel):
     email:str
     full_name:str
 
-    class config:
-        from_attributes=True
+
+    model_config = {"from_attributes": True}
 
 class Token(BaseModel):
     access_token:str

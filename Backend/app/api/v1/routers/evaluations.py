@@ -3,6 +3,7 @@ from app.models.user_model import User
 from fastapi import APIRouter, Depends
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.db.database import get_db
 from app.api.v1.routers.auth import get_current_user
 from app.schemas.evaluation import EvaluationRequest, EvaluationResponse
@@ -20,9 +21,8 @@ async def get_evaluation_history(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from sqlalchemy import select
     result = await db.execute(
-    select(EvaluationRecord)
-    .where(EvaluationRecord.user_id == current_user.id)
-    .order_by(EvaluationRecord.created_at.desc())
-)
+        select(EvaluationRecord)
+        .order_by(EvaluationRecord.created_at.desc())
+    )
+    return result.scalars().all()

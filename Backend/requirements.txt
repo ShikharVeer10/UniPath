@@ -16,3 +16,4 @@ asyncpg
 psycopg2
 python-jose[cryptography]>=3.3.0
 pydantic[email]>=2.4.0
+slowapi>=0.1.9
