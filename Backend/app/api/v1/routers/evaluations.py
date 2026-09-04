@@ -12,8 +12,8 @@ from app.services.evaluation_service import process_and_save_evaluation
 router = APIRouter(prefix="/evaluations", tags=["evaluations"])
 
 @router.post("/", response_model=EvaluationResponse)
-async def evaluate_profile(payload: EvaluationRequest,db: AsyncSession = Depends(get_db),_current_user: User = Depends(get_current_user),):
-    record = await process_and_save_evaluation(db, payload)
+async def evaluate_profile(payload: EvaluationRequest, db: AsyncSession = Depends(get_db), _current_user: User = Depends(get_current_user)):
+    record = await process_and_save_evaluation(db, payload, _current_user.id)
     return record
 
 @router.get("/history", response_model=List[EvaluationResponse])

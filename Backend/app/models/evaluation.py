@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 
 
 def _utcnow() -> datetime.datetime:
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 
 class EvaluationRecord(SQLModel, table=True):
