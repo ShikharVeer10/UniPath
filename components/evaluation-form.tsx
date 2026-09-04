@@ -198,7 +198,7 @@ export function EvaluationForm({ onResult, initialValue = initialDraft }: { onRe
             step="0.01"
             min="0"
             max="10"
-            value={form.cgpa || ''}
+            value={form.cgpa === 0 ? '' : form.cgpa}
             onChange={(event) => setField('cgpa', Number(event.target.value || 0))}
             placeholder="8.7"
             className="w-full"

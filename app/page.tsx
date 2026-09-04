@@ -43,7 +43,7 @@ export default function Home() {
         </section>
 
         <section className="grid gap-4 border-t pt-8 md:grid-cols-3">
-          <div className="group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
+          <div className="animate-fade-up stagger-1 group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
             <Compass className="mt-1 size-5 text-primary" />
             <div>
               <h2 className="font-semibold">Find your range</h2>
@@ -51,7 +51,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
+          <div className="animate-fade-up stagger-2 group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
             <BarChart3 className="mt-1 size-5 text-primary" />
             <div>
               <h2 className="font-semibold">Grounded in signals</h2>
@@ -59,7 +59,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
+          <div className="animate-fade-up stagger-3 group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
             <Sparkles className="mt-1 size-5 text-primary" />
             <div>
               <h2 className="font-semibold">Advice that moves you</h2>

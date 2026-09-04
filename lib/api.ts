@@ -125,7 +125,7 @@ export const api = {
 
     return (await res.json()) as { access_token: string; token_type: 'bearer' };
   },
-  evaluate: (body: EvaluationRequest) => request<EvaluationResponse>('/evaluations/', { method: 'POST', body: JSON.stringify(body) }),
+  evaluate: (body: EvaluationRequest) => request<EvaluationResponse>('/evaluations', { method: 'POST', body: JSON.stringify(body) }),
   history: () => request<EvaluationResponse[]>('/evaluations/history'),
 };
 
