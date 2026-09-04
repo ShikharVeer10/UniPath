@@ -1,17 +1,11 @@
 import uuid
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.evaluation import EvaluationRecord
 from app.schemas.evaluation import EvaluationRequest
 from app.schemas.output_schema import StudentEvaluationInput
 from app.services.profile_matcher_service import profile_matcher_service
 
-
-async def process_and_save_evaluation(
-    db: AsyncSession,
-    payload: EvaluationRequest,
-    user_id: uuid.UUID,
-) -> EvaluationRecord:
+async def process_and_save_evaluation(db: AsyncSession, payload: EvaluationRequest,user_id:uuid.UUID) -> EvaluationRecord:
     # Convert to the input format expected by profile_matcher_service
     student_data = StudentEvaluationInput(
         target_country=payload.target_country,
