@@ -17,6 +17,10 @@ async def evaluate_profile(payload: EvaluationRequest, db: AsyncSession = Depend
     return record
 
 @router.get("/history", response_model=List[EvaluationResponse])
-async def get_evaluation_history(db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user),):
-    result = await db.execute(select(EvaluationRecord).order_by(EvaluationRecord.created_at.desc()))
+async def get_evaluation_history(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(
+        select(EvaluationRecord)
+        .where(EvaluationRecord.user_id == current_user.id)
+        .order_by(EvaluationRecord.created_at.desc())
+    )
     return result.scalars().all()

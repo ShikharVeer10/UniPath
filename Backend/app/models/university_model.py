@@ -1,6 +1,9 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 class University(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
@@ -8,8 +11,8 @@ class University(SQLModel, table=True):
     country: str
     ranking: int | None = None
     tuition: float | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
 
 class HistoricalProfile(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
@@ -20,5 +23,5 @@ class HistoricalProfile(SQLModel, table=True):
     toefl_score: int | None = None
     research_papers: int = Field(default=0)
     admitted: bool
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)

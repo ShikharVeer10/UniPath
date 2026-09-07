@@ -15,15 +15,45 @@ from app.models.user_model import User  # noqa: F401
 from app.models.evaluation import EvaluationRecord  # noqa: F401
 from app.models.university_model import University, HistoricalProfile  # noqa: F401
 
+from contextlib import asynccontextmanager
+
 logger = logging.getLogger("uvicorn.error")
 
 limiter = Limiter(key_func=get_remote_address)
+
+def configure_swagger(target_app: FastAPI):
+    openapi_schema = target_app.openapi()
+    if "components" not in openapi_schema:
+        openapi_schema["components"] = {}
+    openapi_schema["components"]["securitySchemes"] = {
+        "OAuth2PasswordBearer": {
+            "type": "oauth2",
+            "flows": {
+                "password": {
+                    "tokenUrl": "/api/v1/auth/login",
+                    "scopes": {}
+                }
+            }
+        }
+    }
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            method["security"] = [{"OAuth2PasswordBearer": []}]
+    target_app.openapi_schema = openapi_schema
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as connection:
+        await connection.run_sync(SQLModel.metadata.create_all)
+    configure_swagger(app)
+    yield
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url="/api/v1/openapi.json",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -58,29 +88,3 @@ async def generic_exception_handler(request: Request, exc: Exception):
         content={"detail": "An unexpected error occurred."}
     )
 
-@app.on_event("startup")
-async def initialize_database():
-    async with engine.begin() as connection:
-        await connection.run_sync(SQLModel.metadata.create_all)
-
-
-@app.on_event("startup")
-def configure_swagger():
-    openapi_schema = app.openapi()
-    if "components" not in openapi_schema:
-        openapi_schema["components"] = {}
-    openapi_schema["components"]["securitySchemes"] = {
-        "OAuth2PasswordBearer": {
-            "type": "oauth2",
-            "flows": {
-                "password": {
-                    "tokenUrl": "/api/v1/auth/login",
-                    "scopes": {}
-                }
-            }
-        }
-    }
-    for path in openapi_schema["paths"].values():
-        for method in path.values():
-            method["security"] = [{"OAuth2PasswordBearer": []}]
-    app.openapi_schema = openapi_schema

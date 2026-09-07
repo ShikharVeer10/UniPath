@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 import uuid
-import jwt
 from app.core.security import (ALGORITHM,SECRET_KEY,create_access_token,get_password_hash,verify_password,)
 from app.core.config import settings
 from app.db.database import get_db
@@ -67,5 +66,5 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db: AsyncSessio
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(data={"sub": user.email})
+    access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
