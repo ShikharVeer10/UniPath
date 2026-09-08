@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime,timezone
 from sqlmodel import SQLModel, Field
 
-def _utcnow()-> datetime:
-    return datetime.now(timezone.utc)
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)

@@ -5,6 +5,12 @@ from app.models.university_model import University, HistoricalProfile
 
 async def run_micro_test():
     async with async_session() as db:
+        # Clean up if existing from previous run
+        existing = (await db.execute(select(University).where(University.name == "University of Illinois Urbana-Champaign"))).scalars().all()
+        for u in existing:
+            await db.delete(u)
+        await db.commit()
+
         test_uni = University(
             name="University of Illinois Urbana-Champaign",
             country="United States",
