@@ -15,6 +15,8 @@ async def process_and_save_evaluation(db: AsyncSession, payload: EvaluationReque
         toefl_score=payload.toefl_score,
         research_papers=payload.research_papers,
         work_experience_months=payload.work_experience_months,
+        detected_strengths=payload.detected_strengths,
+        detected_challenges=payload.detected_challenges,
     )
 
     # Get real evaluation from the AI profile matcher (with fallback)

@@ -16,6 +16,9 @@ from app.models.evaluation import EvaluationRecord  # noqa: F401
 from app.models.university_model import University, HistoricalProfile  # noqa: F401
 
 from contextlib import asynccontextmanager
+from app.api.v1.routers import advisor
+
+api_router.include_router(advisor.router)
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -43,8 +46,11 @@ def configure_swagger(target_app: FastAPI):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as connection:
-        await connection.run_sync(SQLModel.metadata.create_all)
+    try:
+        async with engine.begin() as connection:
+            await connection.run_sync(SQLModel.metadata.create_all)
+    except Exception as exc:
+        logger.warning("Create_all skipped or failed(safe if migrations is applied)", exc)
     configure_swagger(app)
     yield
 
@@ -58,10 +64,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

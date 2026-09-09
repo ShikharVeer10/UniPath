@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Minus, Plus } from 'lucide-react';
+import { ArrowRight, Minus, Plus, UploadCloud, FileText, CheckCircle2 } from 'lucide-react';
 import { api, EvaluationRequest } from '@/lib/api';
 
 const countryOptions = [
@@ -57,6 +57,40 @@ export function EvaluationForm({ onResult, initialValue = initialDraft }: { onRe
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [statusIndex, setStatusIndex] = useState(0);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [resumeSuccess, setResumeSuccess] = useState<string | null>(null);
+
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingResume(true);
+    setResumeSuccess(null);
+    setErrors({});
+
+    try {
+      const parsed: any = await api.parseResume(file);
+      setForm((prev) => ({
+        ...prev,
+        target_country: parsed.target_country || prev.target_country,
+        target_program: parsed.target_program || prev.target_program,
+        cgpa: parsed.cgpa !== undefined ? parsed.cgpa : prev.cgpa,
+        gre_score: parsed.gre_score !== undefined ? parsed.gre_score : prev.gre_score,
+        toefl_score: parsed.toefl_score !== undefined ? parsed.toefl_score : prev.toefl_score,
+        research_papers: parsed.research_papers !== undefined ? parsed.research_papers : prev.research_papers,
+        work_experience_months: parsed.work_experience_months !== undefined ? parsed.work_experience_months : prev.work_experience_months,
+        detected_strengths: parsed.detected_strengths || prev.detected_strengths,
+        detected_challenges: parsed.detected_challenges || prev.detected_challenges,
+      }));
+      const strengthCount = parsed.detected_strengths?.length || 0;
+      setResumeSuccess(`Parsed ${file.name} successfully (${strengthCount} profile traits detected)`);
+    } catch (err: any) {
+      setErrors({ form: err?.message || 'Failed to extract resume details.' });
+    } finally {
+      setUploadingResume(false);
+      event.target.value = '';
+    }
+  };
 
   useEffect(() => {
     if (!loading) return;
@@ -107,6 +141,8 @@ export function EvaluationForm({ onResult, initialValue = initialDraft }: { onRe
         toefl_score: form.toefl_score !== undefined ? Number(form.toefl_score) : undefined,
         research_papers: Number(form.research_papers ?? 0),
         work_experience_months: Number(form.work_experience_months ?? 0),
+        detected_strengths: form.detected_strengths || [],
+        detected_challenges: form.detected_challenges || [],
       };
       const result = await api.evaluate(payload);
       onResult(result);
@@ -153,6 +189,49 @@ export function EvaluationForm({ onResult, initialValue = initialDraft }: { onRe
   return (
     <form onSubmit={submit} className="space-y-7">
       {errors.form && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{errors.form}</p>}
+
+      {/* Resume Autofill Banner */}
+      <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/[0.03] p-4 sm:p-5 transition-all duration-200 hover:border-primary/50">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <UploadCloud className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight text-foreground">Autofill with your resume</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Upload a PDF to parse your CGPA, test scores, and experience automatically.</p>
+            </div>
+          </div>
+
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-xl border bg-card px-4 py-2.5 text-xs font-semibold text-foreground transition-all duration-200 hover:border-primary/40 hover:text-primary hover:shadow-sm">
+            {uploadingResume ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="size-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                Parsing PDF…
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                <FileText className="size-3.5" />
+                Choose PDF
+              </span>
+            )}
+            <input
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={handleResumeUpload}
+              disabled={uploadingResume}
+            />
+          </label>
+        </div>
+
+        {resumeSuccess && (
+          <div className="mt-3 flex items-center gap-1.5 border-t border-primary/10 pt-3 text-xs font-medium text-emerald-600">
+            <CheckCircle2 className="size-3.5 shrink-0" />
+            <span>{resumeSuccess}</span>
+          </div>
+        )}
+      </div>
 
       <div className="mb-2 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
         {['Target country', 'Program fit', 'Academic profile', 'Research & work'].map((label) => (

@@ -24,6 +24,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "aiosqlite>=0.22.1",
     "pytest-asyncio>=1.4.0",
+    "pypdf>=5.0.0",
 ]
 
 [build-system]

@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 

@@ -11,30 +11,61 @@ from app.db.database import get_db
 from app.models.user_model import User
 from app.schemas.auth import Token, UserCreate, UserResponse
 
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
-    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Could not validate credentials",headers={"WWW-Authenticate": "Bearer"},)
+    if not token:
+        logger.warning("get_current_user: No token provided in Authorization header")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication token is missing. Please sign in.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+            logger.warning("get_current_user: Token payload missing 'sub'")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload: missing user identifier.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError as exc:
+        logger.warning(f"get_current_user: JWT decoding failed: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation failed: {str(exc)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     try:
         uid = uuid.UUID(user_id)
     except ValueError:
-        raise credentials_exception
+        logger.warning(f"get_current_user: Invalid UUID format for user_id: {user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user identifier format in token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     result = await db.execute(select(User).where(User.id == uid))
     user = result.scalars().first()
     if user is None:
-        raise credentials_exception
+        logger.warning(f"get_current_user: User with ID {uid} not found in database")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User associated with this token was not found.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
 
 

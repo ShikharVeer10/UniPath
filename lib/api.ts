@@ -6,6 +6,8 @@ export type EvaluationRequest = {
   toefl_score?: number;
   research_papers?: number;
   work_experience_months?: number;
+  detected_strengths?: string[];
+  detected_challenges?: string[];
 };
 
 export type Recommendation = {
@@ -13,6 +15,8 @@ export type Recommendation = {
   category: 'Ambitious' | 'Target' | 'Safe';
   acceptance_probability: number;
   rationale: string;
+  requirements?: Record<string, string>;
+  tailored_advice?: string;
 };
 
 export type EvaluationResponse = EvaluationRequest & {
@@ -58,7 +62,7 @@ function parseErrorMessage(body: any, status: number) {
     const messages = body.detail.map((item: any) => item?.msg).filter(Boolean);
     if (messages.length) return messages.join(', ');
   }
-  if (typeof body?.detail === 'string') return body.detail;
+  if (typeof body?.detail === 'string' && body.detail.trim()) return body.detail;
   if (status === 401) return 'Your session has expired. Please sign in again.';
   if (status >= 500) return 'The UniPath server is unavailable. Check the backend connection.';
   return 'Something went wrong while talking to UniPath.';
@@ -127,6 +131,81 @@ export const api = {
   },
   evaluate: (body: EvaluationRequest) => request<EvaluationResponse>('/evaluations/', { method: 'POST', body: JSON.stringify(body) }),
   history: () => request<EvaluationResponse[]>('/evaluations/history'),
+  parseResume: async (file: File): Promise<Partial<EvaluationRequest>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<Partial<EvaluationRequest>>('/profile/parse-resume', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  getUniversities: (params?: { search?: string; country?: string; max_rank?: number; skip?: number; limit?: number }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.country) searchParams.set('country', params.country);
+    if (params?.max_rank) searchParams.set('max_rank', String(params.max_rank));
+    if (params?.skip !== undefined) searchParams.set('skip', String(params.skip));
+    if (params?.limit !== undefined) searchParams.set('limit', String(params.limit));
+    const query = searchParams.toString();
+    return request<Array<{
+      id: string;
+      name: string;
+      country: string;
+      ranking: number | null;
+      tuition: number | null;
+    }>>(`/universities/${query ? `?${query}` : ''}`);
+  },
+  getUniversityStats: (universityId: string) => {
+    return request<{
+      university_id: string;
+      university_name: string;
+      programs: Array<{
+        program_name: string;
+        total_applicants: number;
+        admitted_count: number;
+        acceptance_rate: number;
+        international_students_count: number;
+        avg_cgpa: number;
+        avg_gre: number | null;
+      }>;
+    }>(`/universities/${universityId}/stats`);
+  },
+  predictAcceptance: (
+    universityId: string,
+    data: {
+      program_name: string;
+      cgpa: number;
+      gre_score?: number;
+      toefl_score?: number;
+      research_papers?: number;
+      work_experience_months?: number;
+    }
+  ) => {
+    return request<{
+      university_id: string;
+      university_name: string;
+      program_name: string;
+      category: string;
+      acceptance_probability: number;
+      rationale: string;
+      historical_matches_analyzed: number;
+    }>(`/universities/${universityId}/predict-acceptance`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  askAdvisor: (data: {
+    query_text: string;
+    user_cgpa: number;
+    user_gre?: number;
+    target_program: string;
+    university_name?: string;
+  }) => {
+    return request<{ answer: string; retrieved_context: string[] }>('/advisor/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 export function parseRecommendation(raw: Record<string, unknown>): Recommendation | null {
@@ -146,5 +225,7 @@ export function parseRecommendation(raw: Record<string, unknown>): Recommendatio
     category: category as Recommendation['category'],
     acceptance_probability: raw.acceptance_probability,
     rationale: raw.rationale,
+    requirements: typeof raw.requirements === 'object' && raw.requirements !== null ? (raw.requirements as Record<string, string>) : undefined,
+    tailored_advice: typeof raw.tailored_advice === 'string' ? raw.tailored_advice : undefined,
   };
 }

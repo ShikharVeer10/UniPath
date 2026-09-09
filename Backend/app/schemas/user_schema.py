@@ -14,12 +14,14 @@ class UserCreate(BaseModel):
     model_config = {"extra": "forbid"}
 
 class UserResponse(BaseModel):
-    id:uuid.UUID
-    is_active:bool
-    created_at:datetime
-    updated_at:datetime
+    id: uuid.UUID
+    email: EmailStr
+    full_name: str | None = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
 
-    model_config={"from_attributes": True}
+    model_config = {"from_attributes": True}
 
 class Token(BaseModel):
     access_token:str

@@ -1,5 +1,5 @@
 import uuid
-from sqlmodel import select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.base_crud import CRUDBase
 from app.models.university_model import University,HistoricalProfile
