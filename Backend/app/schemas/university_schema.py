@@ -22,8 +22,8 @@ class HistoricalProfileBase(BaseModel):
     program_name:str
     cgpa:float
     gre_score:int | None=None
-    Toefl_Score:int | None=None
-    IELTS_score:int | None=None
+    toefl_score:int | None=None
+    ielts_score:int | None=None
     research_papers:int=0
     admitted:bool
 

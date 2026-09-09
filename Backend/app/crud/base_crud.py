@@ -1,4 +1,3 @@
-from sqlalchemy.schema import CreateSchema
 import uuid
 from typing import Generic,TypeVar,Type
 from pydantic import BaseModel
