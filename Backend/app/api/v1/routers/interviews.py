@@ -64,3 +64,32 @@ async def schedule_interview(payload: InterviewScheduleRequest):
         client_base_url=payload.client_base_url,
     )
     return InterviewScheduleResponse(**result)
+
+class CodeRunRequest(BaseModel):
+    question_id: str
+    language: str
+    code: str
+    custom_input: str | None = None
+
+@router.get("/coding/random")
+async def get_random_coding_question():
+    """Returns 1 random LeetCode or Codeforces coding challenge for the interview."""
+    from app.services.coding_service import coding_service
+    return coding_service.get_random_question()
+
+@router.get("/coding/questions")
+async def list_coding_questions():
+    """Lists all available algorithmic problems."""
+    from app.services.coding_service import coding_service
+    return coding_service.get_all_questions()
+
+@router.post("/coding/run")
+async def run_and_verify_code(payload: CodeRunRequest):
+    """Compiles and executes code against testcases just like LeetCode/Codeforces."""
+    from app.services.coding_service import coding_service
+    return coding_service.execute_and_verify(
+        language=payload.language,
+        code=payload.code,
+        question_id=payload.question_id,
+        custom_input=payload.custom_input,
+    )

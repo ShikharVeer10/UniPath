@@ -29,6 +29,12 @@ import {
   Copy,
   Check,
   AlertTriangle,
+  Code2,
+  Terminal,
+  Play,
+  Cpu,
+  CheckCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { Shell } from '@/components/ui';
 import { useAuth } from '@/components/auth-context';
@@ -70,7 +76,26 @@ function InterviewContent() {
   const urlCall = searchParams.get('call') === 'active';
 
   // Navigation mode / step
-  const [activeTab, setActiveTab] = useState<'schedule' | 'live_call' | 'report'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'live_call' | 'coding' | 'report'>('schedule');
+
+  // LeetCode / Codeforces Coding Assessment State
+  const [codingQuestion, setCodingQuestion] = useState<{
+    id: string;
+    title: string;
+    platform: string;
+    difficulty: string;
+    category: string;
+    description: string;
+    testcases: Array<{ input: string; expected_output: string }>;
+    templates: Record<string, string>;
+  } | null>(null);
+  const [codingLang, setCodingLang] = useState<'python' | 'cpp' | 'c' | 'java'>('python');
+  const [code, setCode] = useState('');
+  const [codeRunning, setCodeRunning] = useState(false);
+  const [codeRunResult, setCodeRunResult] = useState<any>(null);
+  const [customInput, setCustomInput] = useState('');
+  const [activeCodeSubTab, setActiveCodeSubTab] = useState<'problem' | 'testcases' | 'results'>('problem');
+  const [codingScore, setCodingScore] = useState<{ passed: number; total: number; status: string } | null>(null);
   
   // Scheduling state
   const [candidateName, setCandidateName] = useState('');
@@ -307,10 +332,68 @@ function InterviewContent() {
     }
   };
 
+  const fetchRandomCodingQuestion = async (forcedLang?: 'python' | 'cpp' | 'c' | 'java') => {
+    try {
+      const q = await api.getRandomCodingQuestion();
+      setCodingQuestion(q);
+      const langToUse = forcedLang || codingLang;
+      if (q.templates && q.templates[langToUse]) {
+        setCode(q.templates[langToUse]);
+      }
+    } catch (e: any) {
+      console.error('Failed to load random coding question:', e);
+    }
+  };
+
+  const handleLanguageChange = (newLang: 'python' | 'cpp' | 'c' | 'java') => {
+    setCodingLang(newLang);
+    if (codingQuestion && codingQuestion.templates && codingQuestion.templates[newLang]) {
+      setCode(codingQuestion.templates[newLang]);
+    }
+  };
+
+  const handleRunCode = async (useCustomInput: boolean = false) => {
+    if (!codingQuestion || codeRunning) return;
+    setCodeRunning(true);
+    setCodeRunResult(null);
+    setActiveCodeSubTab('results');
+
+    try {
+      const result = await api.runCode({
+        question_id: codingQuestion.id,
+        language: codingLang,
+        code,
+        custom_input: useCustomInput ? customInput : undefined,
+      });
+      setCodeRunResult(result);
+      if (!useCustomInput) {
+        setCodingScore({
+          passed: result.passed_testcases,
+          total: result.total_testcases,
+          status: result.status,
+        });
+      }
+    } catch (err: any) {
+      setCodeRunResult({
+        status: 'Execution Failed',
+        passed: false,
+        error_message: err.message || 'Could not connect to code evaluation service.',
+        total_testcases: codingQuestion.testcases.length,
+        passed_testcases: 0,
+        results: [],
+      });
+    } finally {
+      setCodeRunning(false);
+    }
+  };
+
   const handleStartCallNow = () => {
     setActiveTab('live_call');
     if (chatHistory.length === 0) {
       initializeInterviewCall();
+    }
+    if (!codingQuestion) {
+      fetchRandomCodingQuestion();
     }
   };
 
@@ -459,6 +542,30 @@ function InterviewContent() {
             <Video className="size-3.5" />
             2. Virtual Call Room {chatHistory.length > 0 && `(Live - ${formatTimer(callDuration)})`}
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('coding');
+              if (!codingQuestion) {
+                fetchRandomCodingQuestion();
+              }
+            }}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
+              activeTab === 'coding'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'border bg-card text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Code2 className="size-3.5" />
+            3. Live Coding Assessment (LeetCode / Codeforces)
+            {codingScore && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                codingScore.passed === codingScore.total ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/20 text-amber-600'
+              }`}>
+                {codingScore.passed}/{codingScore.total}
+              </span>
+            )}
+          </button>
           {evaluationReport && (
             <button
               type="button"
@@ -470,7 +577,7 @@ function InterviewContent() {
               }`}
             >
               <Award className="size-3.5" />
-              3. Strict Evaluation Report ({evaluationReport.overall_score}/100)
+              4. Strict Evaluation Report ({evaluationReport.overall_score}/100)
             </button>
           )}
         </div>
@@ -969,6 +1076,325 @@ function InterviewContent() {
         </div>
       )}
 
+      {/* TAB 3: LEETCODE / CODEFORCES LIVE CODING PLATFORM */}
+      {activeTab === 'coding' && (
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-card shadow-sm overflow-hidden flex flex-col min-h-[700px]">
+            {/* PLATFORM HEADER */}
+            <div className="flex flex-wrap items-center justify-between border-b border-border/60 bg-muted/20 px-5 py-3.5 gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <Code2 className="size-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold tracking-tight text-foreground">
+                      {codingQuestion ? codingQuestion.title : 'Algorithmic Coding Assessment'}
+                    </span>
+                    {codingQuestion && (
+                      <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        {codingQuestion.platform}
+                      </span>
+                    )}
+                    {codingQuestion && (
+                      <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/20">
+                        {codingQuestion.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Category: {codingQuestion?.category || 'Algorithms'} • Sandboxed compiler supporting Python, C, C++, and Java
+                  </p>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS & RANDOMIZE */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fetchRandomCodingQuestion()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border bg-muted/30 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition"
+                  title="Pick another random question"
+                >
+                  <RefreshCw className="size-3.5" />
+                  Randomize Problem
+                </button>
+
+                {/* LANGUAGE SELECTOR */}
+                <div className="flex items-center rounded-lg border bg-background p-0.5">
+                  {(['python', 'cpp', 'c', 'java'] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`rounded-md px-2.5 py-1 text-xs font-semibold uppercase transition ${
+                        codingLang === lang
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {lang === 'cpp' ? 'C++' : lang}
+                    </button>
+                  ))}
+                </div>
+
+                {/* RUN BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => handleRunCode(false)}
+                  disabled={codeRunning || !codingQuestion}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition disabled:opacity-50"
+                >
+                  {codeRunning ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Evaluating...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="size-3.5 fill-current" />
+                      Run & Submit
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* SPLIT PANEL: PROBLEM & TESTCASES (LEFT) + CODE EDITOR & TERMINAL (RIGHT) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[580px]">
+              {/* LEFT: PROBLEM SPECIFICATION & TESTCASES */}
+              <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-border/60 bg-muted/10 flex flex-col">
+                {/* SUB TABS */}
+                <div className="flex items-center border-b border-border/60 bg-muted/20 px-4 py-2 gap-4 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCodeSubTab('problem')}
+                    className={`pb-1 transition ${
+                      activeCodeSubTab === 'problem'
+                        ? 'border-b-2 border-primary text-primary font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Problem Description
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCodeSubTab('testcases')}
+                    className={`pb-1 transition ${
+                      activeCodeSubTab === 'testcases'
+                        ? 'border-b-2 border-primary text-primary font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Testcases ({codingQuestion?.testcases.length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCodeSubTab('results')}
+                    className={`pb-1 transition flex items-center gap-1.5 ${
+                      activeCodeSubTab === 'results'
+                        ? 'border-b-2 border-primary text-primary font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Execution Results
+                    {codeRunResult && (
+                      <span className={`size-2 rounded-full ${codeRunResult.passed ? 'bg-emerald-500' : 'bg-destructive'}`} />
+                    )}
+                  </button>
+                </div>
+
+                {/* CONTENT AREA */}
+                <div className="p-5 overflow-y-auto flex-1 space-y-4 max-h-[540px]">
+                  {activeCodeSubTab === 'problem' && codingQuestion && (
+                    <div className="space-y-4 text-xs md:text-sm">
+                      <div className="whitespace-pre-line leading-relaxed text-foreground">
+                        {codingQuestion.description}
+                      </div>
+
+                      <div className="rounded-xl border border-border/60 bg-background p-3.5 space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <Cpu className="size-3 text-primary" />
+                          Platform Constraints & Guidelines
+                        </p>
+                        <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                          <li>Time Limit: <strong>3.5s per test case</strong></li>
+                          <li>Memory Limit: <strong>256 MB</strong></li>
+                          <li>Input is delivered via Standard Input (`stdin`), output expected on Standard Output (`stdout`).</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCodeSubTab === 'testcases' && codingQuestion && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        Predefined Verified Testcases:
+                      </p>
+                      {codingQuestion.testcases.map((tc, idx) => (
+                        <div key={idx} className="rounded-xl border border-border/60 bg-background p-3 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-primary">Testcase #{idx + 1}</span>
+                            <span className="text-[10px] text-muted-foreground font-mono">Standard Test</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground">Input:</span>
+                            <pre className="mt-0.5 rounded-lg bg-muted/40 p-2 font-mono text-[11px] overflow-x-auto">
+                              {tc.input}
+                            </pre>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground">Expected Output:</span>
+                            <pre className="mt-0.5 rounded-lg bg-muted/40 p-2 font-mono text-[11px] overflow-x-auto text-emerald-600 dark:text-emerald-400">
+                              {tc.expected_output}
+                            </pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeCodeSubTab === 'results' && (
+                    <div className="space-y-4">
+                      {!codeRunResult && (
+                        <div className="text-center py-12 text-muted-foreground text-xs">
+                          <Play className="size-8 mx-auto mb-2 opacity-30" />
+                          Click <strong>Run & Submit</strong> to compile and evaluate your code against all testcases.
+                        </div>
+                      )}
+
+                      {codeRunResult && (
+                        <div className="space-y-4">
+                          {/* STATUS HEADER */}
+                          <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                            codeRunResult.passed
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-destructive/10 border-destructive/30 text-destructive'
+                          }`}>
+                            <div>
+                              <div className="flex items-center gap-2 font-bold text-sm">
+                                {codeRunResult.passed ? <CheckCircle className="size-4" /> : <AlertTriangle className="size-4" />}
+                                {codeRunResult.status}
+                              </div>
+                              <p className="text-[11px] opacity-80 mt-0.5">
+                                {codeRunResult.passed_testcases} / {codeRunResult.total_testcases} Testcases Passed
+                              </p>
+                            </div>
+                            <div className="text-right font-mono text-xs opacity-90">
+                              {codeRunResult.runtime_ms} ms
+                            </div>
+                          </div>
+
+                          {/* COMPILATION / RUNTIME ERROR LOG */}
+                          {codeRunResult.error_message && (
+                            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+                              <p className="text-[11px] font-bold text-destructive mb-1">Compiler Diagnostics:</p>
+                              <pre className="text-[11px] font-mono text-destructive whitespace-pre-wrap">
+                                {codeRunResult.error_message}
+                              </pre>
+                            </div>
+                          )}
+
+                          {/* INDIVIDUAL TESTCASES BREAKDOWN */}
+                          {codeRunResult.results && codeRunResult.results.length > 0 && (
+                            <div className="space-y-2.5">
+                              {codeRunResult.results.map((r: any, i: number) => (
+                                <div
+                                  key={i}
+                                  className={`rounded-xl border p-3 text-xs space-y-2 ${
+                                    r.passed ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-destructive/30 bg-destructive/5'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold flex items-center gap-1.5">
+                                      {r.passed ? (
+                                        <Check className="size-3.5 text-emerald-500" />
+                                      ) : (
+                                        <AlertTriangle className="size-3.5 text-destructive" />
+                                      )}
+                                      Testcase #{r.testcase}
+                                    </span>
+                                    <span className="font-mono text-[10px] text-muted-foreground">{r.runtime_ms} ms</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div>
+                                      <span className="text-muted-foreground block text-[10px] uppercase font-semibold">Expected</span>
+                                      <pre className="mt-0.5 rounded bg-background p-1.5 font-mono overflow-x-auto">
+                                        {r.expected}
+                                      </pre>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground block text-[10px] uppercase font-semibold">Your Output</span>
+                                      <pre className={`mt-0.5 rounded bg-background p-1.5 font-mono overflow-x-auto ${
+                                        r.passed ? 'text-emerald-500 font-semibold' : 'text-destructive font-semibold'
+                                      }`}>
+                                        {r.actual}
+                                      </pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT: CODE EDITOR & SUBMISSION RUNNER */}
+              <div className="lg:col-span-7 flex flex-col bg-zinc-950 text-zinc-100 font-mono">
+                {/* EDITOR BAR */}
+                <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="size-3.5 text-primary" />
+                    <span className="text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
+                      Solution.{codingLang === 'python' ? 'py' : codingLang === 'cpp' ? 'cpp' : codingLang === 'c' ? 'c' : 'java'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-zinc-500">
+                    Press Run & Submit to test
+                  </div>
+                </div>
+
+                {/* CODE TEXTAREA */}
+                <div className="flex-1 relative p-3">
+                  <textarea
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    spellCheck={false}
+                    className="w-full h-full min-h-[420px] bg-transparent text-zinc-100 font-mono text-xs leading-relaxed outline-none resize-none selection:bg-primary/30"
+                  />
+                </div>
+
+                {/* CUSTOM INPUT DRAWER */}
+                <div className="border-t border-zinc-800 bg-zinc-900/60 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-zinc-400">Custom Test Input (Optional):</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRunCode(true)}
+                      disabled={codeRunning || !customInput.trim()}
+                      className="text-[10px] text-primary hover:underline font-semibold disabled:opacity-40"
+                    >
+                      Test on Custom Input
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g. [2,7,11,15] \n 9"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-primary font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB 3: SCORE REPORT & STRICT EVALUATION */}
       {activeTab === 'report' && evaluationReport && (
         <div className="space-y-6">
@@ -988,35 +1414,49 @@ function InterviewContent() {
               </div>
 
               {/* OVERALL SCORE BADGE */}
-              <div
-                className={`flex items-center gap-4 rounded-xl border p-4 shrink-0 ${
-                  evaluationReport.overall_score >= 80
-                    ? 'border-emerald-500/30 bg-emerald-500/10'
-                    : evaluationReport.overall_score >= 50
-                    ? 'border-amber-500/30 bg-amber-500/10'
-                    : 'border-destructive/30 bg-destructive/10'
-                }`}
-              >
-                <div className="text-center">
-                  <span
-                    className={`text-4xl font-extrabold ${
-                      evaluationReport.overall_score >= 80
-                        ? 'text-emerald-500'
-                        : evaluationReport.overall_score >= 50
-                        ? 'text-amber-500'
-                        : 'text-destructive'
-                    }`}
-                  >
-                    {evaluationReport.overall_score}
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground">/100</span>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-0.5">
-                    {evaluationReport.overall_score >= 80
-                      ? 'Admit Caliber'
+              <div className="flex items-center gap-3 shrink-0">
+                {codingScore && (
+                  <div className={`rounded-xl border p-4 text-center ${
+                    codingScore.passed === codingScore.total
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'border-amber-500/30 bg-amber-500/10 text-amber-600'
+                  }`}>
+                    <span className="text-3xl font-extrabold">{codingScore.passed}/{codingScore.total}</span>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mt-0.5">Coding Testcases</p>
+                    <span className="text-[10px] font-mono opacity-80">{codingScore.status}</span>
+                  </div>
+                )}
+
+                <div
+                  className={`flex items-center gap-4 rounded-xl border p-4 ${
+                    evaluationReport.overall_score >= 80
+                      ? 'border-emerald-500/30 bg-emerald-500/10'
                       : evaluationReport.overall_score >= 50
-                      ? 'Borderline'
-                      : 'Critical Deficit'}
-                  </p>
+                      ? 'border-amber-500/30 bg-amber-500/10'
+                      : 'border-destructive/30 bg-destructive/10'
+                  }`}
+                >
+                  <div className="text-center">
+                    <span
+                      className={`text-4xl font-extrabold ${
+                        evaluationReport.overall_score >= 80
+                          ? 'text-emerald-500'
+                          : evaluationReport.overall_score >= 50
+                          ? 'text-amber-500'
+                          : 'text-destructive'
+                      }`}
+                    >
+                      {evaluationReport.overall_score}
+                    </span>
+                    <span className="text-xs font-medium text-muted-foreground">/100</span>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-0.5">
+                      {evaluationReport.overall_score >= 80
+                        ? 'Admit Caliber'
+                        : evaluationReport.overall_score >= 50
+                        ? 'Borderline'
+                        : 'Critical Deficit'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

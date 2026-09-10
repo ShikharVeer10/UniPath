@@ -262,6 +262,57 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+  getRandomCodingQuestion: () => {
+    return request<{
+      id: string;
+      title: string;
+      platform: string;
+      difficulty: string;
+      category: string;
+      description: string;
+      testcases: Array<{ input: string; expected_output: string }>;
+      templates: Record<string, string>;
+    }>('/interviews/coding/random');
+  },
+  listCodingQuestions: () => {
+    return request<Array<{
+      id: string;
+      title: string;
+      platform: string;
+      difficulty: string;
+      category: string;
+      description: string;
+      testcases: Array<{ input: string; expected_output: string }>;
+      templates: Record<string, string>;
+    }>>('/interviews/coding/questions');
+  },
+  runCode: (data: {
+    question_id: string;
+    language: string;
+    code: string;
+    custom_input?: string;
+  }) => {
+    return request<{
+      status: string;
+      passed: boolean;
+      total_testcases: number;
+      passed_testcases: number;
+      runtime_ms: number;
+      error_message?: string;
+      results: Array<{
+        testcase: number;
+        input: string;
+        expected: string;
+        actual: string;
+        passed: boolean;
+        runtime_ms: number;
+        error?: string;
+      }>;
+    }>('/interviews/coding/run', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 export function parseRecommendation(raw: Record<string, unknown>): Recommendation | null {
