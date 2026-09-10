@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str = "dev-secret-key-change-me-at-least-32-chars-long"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
     CORS_ORIGINS: list[str] = [
         "http://localhost:3000",

@@ -92,6 +92,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       body = {};
     }
 
+    if (res.status === 401 && typeof window !== 'undefined') {
+      sessionStorage.removeItem('unipath_token');
+    }
+
     const error = new Error(parseErrorMessage(body, res.status)) as ApiError;
     error.status = res.status;
     error.fields = parseValidationFields(body?.detail);

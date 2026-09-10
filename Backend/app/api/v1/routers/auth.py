@@ -39,6 +39,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
                 detail="Invalid token payload: missing user identifier.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+    except jwt.ExpiredSignatureError:
+        logger.warning("get_current_user: Access token has expired")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your session has expired. Please sign in again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except JWTError as exc:
         logger.warning(f"get_current_user: JWT decoding failed: {exc}")
         raise HTTPException(
