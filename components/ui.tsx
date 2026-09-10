@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowRight, Check, ChevronDown, Clock3, Sparkles, Compass, ExternalLink, BookOpen, ListChecks, Lightbulb } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, Clock3, Sparkles, Compass, ExternalLink, BookOpen, ListChecks, Lightbulb, LogIn, LogOut } from 'lucide-react';
 import { parseRecommendation } from '@/lib/api';
 import { AdvisorChatbot } from '@/components/advisor-chatbot';
+import { useAuth } from '@/components/auth-context';
 
 export function Shell({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border/80 bg-background/80 backdrop-blur-xl">
@@ -22,6 +25,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link href="/evaluate" className="inline-flex items-center rounded-full bg-foreground px-4 py-2 font-medium text-background transition-transform hover:scale-[1.02]">
               Evaluate profile <ArrowRight className="ml-1 size-4" />
             </Link>
+
+            {auth.ready && (
+              auth.authed ? (
+                <button
+                  type="button"
+                  onClick={() => auth.logout()}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                  title="Sign out of your session"
+                >
+                  <LogOut className="size-3.5" />
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/80 px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/50 hover:text-primary"
+                >
+                  <LogIn className="size-3.5" />
+                  Login
+                </Link>
+              )
+            )}
           </nav>
 
           <div className="flex items-center gap-3 md:hidden">
@@ -34,6 +59,27 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link href="/evaluate" className="inline-flex items-center rounded-full bg-foreground px-3.5 py-2 text-sm font-medium text-background">
               Evaluate
             </Link>
+
+            {auth.ready && (
+              auth.authed ? (
+                <button
+                  type="button"
+                  onClick={() => auth.logout()}
+                  className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
+                  title="Sign out"
+                >
+                  <LogOut className="size-3.5" />
+                </button>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold text-foreground hover:text-primary"
+                >
+                  <LogIn className="size-3.5" />
+                  Login
+                </Link>
+              )
+            )}
           </div>
         </div>
       </header>
