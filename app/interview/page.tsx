@@ -879,8 +879,9 @@ function InterviewContent() {
               <button
                 type="button"
                 onClick={handleFinishAndEvaluate}
-                disabled={evaluating || userTurnsCount === 0}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground transition hover:opacity-90 disabled:opacity-40"
+                disabled={evaluating}
+                title="End Virtual Call & View Evaluation Report"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-destructive-foreground transition hover:opacity-90 disabled:opacity-50 shadow-xs cursor-pointer"
               >
                 {evaluating ? (
                   <>
@@ -1062,15 +1063,14 @@ function InterviewContent() {
                   <Sparkles className="size-3 text-primary" />
                   Strict Scoring: Provide verifiable architectural mechanisms and trade-offs. Evasive answers receive severe penalties.
                 </span>
-                {userTurnsCount >= 1 && (
-                  <button
-                    type="button"
-                    onClick={handleFinishAndEvaluate}
-                    className="font-medium text-destructive hover:underline"
-                  >
-                    Conclude Call & Generate Report
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleFinishAndEvaluate}
+                  disabled={evaluating}
+                  className="font-medium text-destructive hover:underline cursor-pointer disabled:opacity-50"
+                >
+                  {evaluating ? 'Evaluating transcript...' : 'Conclude Call & Generate Report'}
+                </button>
               </div>
             </form>
           </div>
