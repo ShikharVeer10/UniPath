@@ -16,9 +16,6 @@ from app.models.evaluation import EvaluationRecord  # noqa: F401
 from app.models.university_model import University, HistoricalProfile  # noqa: F401
 
 from contextlib import asynccontextmanager
-from app.api.v1.routers import advisor
-
-api_router.include_router(advisor.router)
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -65,6 +62,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

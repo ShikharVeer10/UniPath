@@ -42,6 +42,45 @@ chat_advisor_agent = Agent(
     )
 )
 
+from app.services.web_search_service import web_search_service
+
+async def _analyze_web_entity_or_url(query: str) -> str | None:
+    """Checks if query has a URL or is asking about a professor/researcher/organization."""
+    url = web_search_service.extract_url(query)
+    if url:
+        info = web_search_service.inspect_url(url)
+        if info.get("success"):
+            return (
+                f"🌐 **Web Verification for link: {url}**\n\n"
+                f"• **Title**: {info.get('title')}\n"
+                f"• **Live Webpage Summary**: {info.get('snippet')[:500]}...\n\n"
+                f"💡 *Admissions Strategy*: You can cite specific projects, initiatives, or research labs mentioned in this link within your Statement of Purpose (SOP) to demonstrate bespoke institutional interest."
+            )
+        return f"I attempted to inspect the link `{url}`, but could not establish a connection. Please ensure the link is publicly accessible."
+
+    # Check for professor/researcher or organization inquiries
+    lower = query.lower()
+    inquiry_indicators = [
+        "prof", "professor", "faculty", "dr.", "dr ", "doctor", "advisor",
+        "who is", "tell me about", "part of", "affiliation", "researcher", "lab", "director"
+    ]
+    if any(ind in lower for ind in inquiry_indicators) or len(query.split()) <= 5:
+        search_res = web_search_service.search_professor_or_organization(query)
+        if search_res:
+            title = search_res.get("title", "")
+            desc = search_res.get("description", "")
+            extract = search_res.get("extract", "")
+            wiki_url = search_res.get("url", "")
+            return (
+                f"🔍 **Faculty & Organization Verification:**\n\n"
+                f"• **Name**: **{title}**\n"
+                f"• **Role & Affiliation**: {desc}\n"
+                f"• **Background**: {extract}\n"
+                f"• **Reference**: [{title} Profile]({wiki_url})\n\n"
+                f"🏛️ **Admissions Context**: When reaching out to this faculty member or mentioning them in your SOP, reference their recent papers and explain how your engineering or research background directly aligns with their active initiatives."
+            )
+    return None
+
 def _generate_rule_based_response(query: str, cgpa: float, gre: float | None, program: str, uni: str | None) -> str:
     lower_query = query.lower()
     gre_text = f"{gre}" if gre else "not submitted / waived"
@@ -90,11 +129,16 @@ def _generate_rule_based_response(query: str, cgpa: float, gre: float | None, pr
         f"2. **Technical Mastery**: Verifiable GitHub repositories demonstrating distributed systems, machine learning pipelines, or software engineering.\n"
         f"3. **Research Capability**: Publications, workshop papers, or technical reports on arXiv.\n"
         f"4. **Faculty Fit**: Letters of Recommendation from professors who can speak specifically to your analytical autonomy.\n\n"
-        f"Feel free to ask about specific universities (e.g. Stanford, MIT, CMU, Georgia Tech, Northeastern, ASU) or how to address specific gaps in your background!"
+        f"Feel free to provide a URL or ask about specific professors/universities (e.g. Stanford, MIT, CMU, Georgia Tech) to verify their departmental affiliation!"
     )
 
 @router.post("/chat", response_model=ChatResponse)
 async def advisor_chat(payload: ChatQueryReqest, db: AsyncSession = Depends(get_db)):
+    # Check first if user provided a URL or is asking about a professor/organization
+    web_result = await _analyze_web_entity_or_url(payload.query_text)
+    if web_result:
+        return ChatResponse(answer=web_result, retrieved_context=[])
+
     context_texts = []
     try:
         query_embedding = [0.0] * 1536

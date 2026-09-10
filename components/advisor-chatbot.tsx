@@ -26,7 +26,7 @@ export function AdvisorChatbot({
     {
       id: 'welcome',
       sender: 'bot',
-      text: "Hello! I am your UniPath Admissions Advisor. Ask me anything about university acceptance standards, how to strengthen your resume/SOP, or how to boost your chances for specific institutions like Stanford, CMU, MIT, or Georgia Tech.",
+      text: "Hello! I am your UniPath Admissions Guide & Advisor. You can ask me about university admission standards, paste any link/URL to inspect, or provide any Professor's or researcher's name and I will search the web to verify their affiliation, department, and active research.",
     },
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -165,20 +165,29 @@ export function AdvisorChatbot({
             <button
               type="button"
               onClick={() => {
-                setInput('How do I improve my resume for top universities?');
+                setInput('Is Professor Fei-Fei Li part of Stanford University?');
               }}
               className="shrink-0 rounded-full border bg-muted/40 px-2.5 py-1 text-muted-foreground hover:text-foreground"
             >
-              💡 How to improve resume?
+              🔎 Verify Professor / Faculty?
             </button>
             <button
               type="button"
               onClick={() => {
-                setInput('What are the official requirements for CMU and Stanford?');
+                setInput('https://cs.stanford.edu');
               }}
               className="shrink-0 rounded-full border bg-muted/40 px-2.5 py-1 text-muted-foreground hover:text-foreground"
             >
-              🏛️ Stanford vs CMU standards?
+              🌐 Inspect link / URL
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setInput('How do I improve my resume for top universities?');
+              }}
+              className="shrink-0 rounded-full border bg-muted/40 px-2.5 py-1 text-muted-foreground hover:text-foreground"
+            >
+              💡 Improve resume?
             </button>
           </div>
 

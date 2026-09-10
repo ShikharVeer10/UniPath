@@ -1,15 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
-from openai import OpenAI
-
-from app.services.interview_prompt import generate_interview_interrogator_prompt
+from app.services.interview_service import interview_service
 
 router = APIRouter(prefix="/interviews", tags=["AI Mock Interview"])
-
-client = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama",
-)
 
 class InterviewInitRequest(BaseModel):
     candidate_name: str
@@ -27,39 +20,47 @@ class InterviewResponse(BaseModel):
 
 @router.post("/start", response_model=InterviewResponse)
 async def start_interview(payload: InterviewInitRequest):
-    system_prompt = generate_interview_interrogator_prompt(
+    message = await interview_service.start_interview_session(
         candidate_name=payload.candidate_name,
         major=payload.major,
         target_university=payload.target_university,
         resume_summary=payload.resume_summary,
-        sop_summary=payload.sop_summary
+        sop_summary=payload.sop_summary,
     )
-
-    try:
-        response = client.chat.completions.create(
-            model="llama3.1", 
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Hello, I am ready for my interview."}
-            ],
-            temperature=0.4
-        )
-        
-        message_content = response.choices[0].message.content
-        return InterviewResponse(interviewer_message=message_content)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start local interview agent: {str(e)}")
+    return InterviewResponse(interviewer_message=message)
 
 @router.post("/message", response_model=InterviewResponse)
 async def continue_interview(payload: InterviewMessageRequest):
-    try:
-        response = client.chat.completions.create(
-            model="llama3.1",
-            messages=payload.chat_history,
-            temperature=0.4
-        )
-        
-        message_content = response.choices[0].message.content
-        return InterviewResponse(interviewer_message=message_content)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process interview response: {str(e)}")
+    message = await interview_service.process_candidate_response(
+        session_id=payload.session_id,
+        chat_history=payload.chat_history,
+    )
+    return InterviewResponse(interviewer_message=message)
+
+class InterviewScheduleRequest(BaseModel):
+    recipient_email: str
+    candidate_name: str
+    target_university: str
+    target_program: str
+    scheduled_time: str
+    client_base_url: str = "http://localhost:3000"
+
+class InterviewScheduleResponse(BaseModel):
+    meeting_id: str
+    call_url: str
+    scheduled_time: str
+    recipient_email: str
+    status: str
+    email_dispatched: bool
+
+@router.post("/schedule", response_model=InterviewScheduleResponse)
+async def schedule_interview(payload: InterviewScheduleRequest):
+    result = await interview_service.schedule_interview_call(
+        recipient_email=payload.recipient_email,
+        candidate_name=payload.candidate_name,
+        target_university=payload.target_university,
+        target_program=payload.target_program,
+        scheduled_time=payload.scheduled_time,
+        client_base_url=payload.client_base_url,
+    )
+    return InterviewScheduleResponse(**result)

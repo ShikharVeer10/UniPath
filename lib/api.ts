@@ -206,6 +206,62 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+  startInterview: (data: {
+    candidate_name: string;
+    major: string;
+    target_university: string;
+    resume_summary: string;
+    sop_summary: string;
+  }) => {
+    return request<{ interviewer_message: string }>('/interviews/start', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  sendInterviewMessage: (data: {
+    session_id: string;
+    chat_history: Array<{ role: string; content: string }>;
+  }) => {
+    return request<{ interviewer_message: string }>('/interviews/message', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  evaluateInterview: (data: {
+    target_university: string;
+    target_program: string;
+    transcript: Array<{ role: string; content: string }>;
+  }) => {
+    return request<{
+      overall_score: number;
+      technical_depth_feedback: string;
+      articulation_feedback: string;
+      actionable_improvements: string[];
+    }>('/interviews/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  scheduleInterview: (data: {
+    recipient_email: string;
+    candidate_name: string;
+    target_university: string;
+    target_program: string;
+    scheduled_time: string;
+    client_base_url?: string;
+  }) => {
+    return request<{
+      meeting_id: string;
+      call_url: string;
+      scheduled_time: string;
+      recipient_email: string;
+      status: string;
+      email_dispatched: boolean;
+    }>('/interviews/schedule', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 export function parseRecommendation(raw: Record<string, unknown>): Recommendation | null {

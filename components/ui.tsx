@@ -17,6 +17,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <Link href="/explore" className="transition-colors hover:text-foreground">Explore</Link>
+            <Link href="/interview" className="transition-colors hover:text-foreground">AI Interview</Link>
             <Link href="/history" className="transition-colors hover:text-foreground">History</Link>
             <Link href="/evaluate" className="inline-flex items-center rounded-full bg-foreground px-4 py-2 font-medium text-background transition-transform hover:scale-[1.02]">
               Evaluate profile <ArrowRight className="ml-1 size-4" />
@@ -26,6 +27,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3 md:hidden">
             <Link href="/explore" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Explore
+            </Link>
+            <Link href="/interview" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Interview
             </Link>
             <Link href="/evaluate" className="inline-flex items-center rounded-full bg-foreground px-3.5 py-2 text-sm font-medium text-background">
               Evaluate
@@ -132,7 +136,7 @@ export function UniversityCard({ item }: { item: Record<string, unknown> }) {
           {activeTab === 'fit' && (
             <div>
               <p className="font-semibold text-foreground mb-1">Selectivity Assessment</p>
-              <p className="leading-relaxed">{recommendation.rationale}</p>
+              <p className="leading-relaxed whitespace-pre-line">{recommendation.rationale}</p>
             </div>
           )}
 
@@ -161,12 +165,22 @@ export function UniversityCard({ item }: { item: Record<string, unknown> }) {
                 <Lightbulb className="size-3.5 text-primary" />
                 Tailored Admission Strategy
               </p>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed whitespace-pre-line">
                 {recommendation.tailored_advice ||
                   `To maximize your admission odds at ${recommendation.university_name}, highlight faculty alignment in your SOP and publish verifiable production repositories on GitHub.`}
               </p>
             </div>
           )}
+
+          <div className="mt-3.5 flex items-center justify-between border-t border-border/40 pt-2.5">
+            <Link
+              href={`/interview?university=${encodeURIComponent(recommendation.university_name)}`}
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline"
+            >
+              <Sparkles className="size-3 text-primary" />
+              Practice AI Mock Interview for {recommendation.university_name} →
+            </Link>
+          </div>
         </div>
       )}
     </article>

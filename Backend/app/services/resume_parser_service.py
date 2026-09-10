@@ -47,10 +47,8 @@ class ResumeParserService:
             raise ValueError(f"Failed to read PDF document: {exc}")
 
     def _heuristic_fallback_parse(self, text: str) -> ParsedResumeData:
-        """Regex and keyword-based fallback if the AI agent is offline."""
         lower = text.lower()
 
-        # Extract CGPA / GPA
         cgpa = 8.0
         gpa_match = re.search(r'(?:gpa|cgpa)\s*(?:is|:)?\s*([0-9]+(?:\.[0-9]+)?)', lower)
         if gpa_match:
@@ -60,27 +58,20 @@ class ResumeParserService:
             elif val <= 10.0:
                 cgpa = val
 
-        # Extract GRE
         gre = None
         gre_match = re.search(r'gre\s*(?:score|total)?\s*(?:is|:)?\s*([23][0-9]{2})', lower)
         if gre_match:
             gre = int(gre_match.group(1))
-
-        # Extract TOEFL
         toefl = None
         toefl_match = re.search(r'toefl\s*(?:score|total)?\s*(?:is|:)?\s*([0-9]{2,3})', lower)
         if toefl_match:
             toefl = int(toefl_match.group(1))
-
-        # Detect research publications
         research_count = 0
         research_titles = []
         if "publication" in lower or "ieee" in lower or "springer" in lower or "arxiv" in lower or "acm" in lower:
             matches = re.findall(r'(?:paper|publication|conference|journal|ieee|springer|arxiv|acm)', lower)
             research_count = min(4, len(matches))
             research_titles.append("Demonstrated academic research and preprint/conference activity.")
-
-        # Infer program
         program = "Computer Science"
         if "data science" in lower:
             program = "Data Science"
@@ -92,8 +83,6 @@ class ResumeParserService:
             program = "Electrical Engineering"
         elif "cybersecurity" in lower:
             program = "Cybersecurity"
-
-        # Count internships / work experience
         internship_matches = len(re.findall(r'(?:intern|internship)', lower))
         software_eng_matches = len(re.findall(r'(?:software engineer|developer|engineer|fullstack|backend|frontend)', lower))
 
@@ -118,16 +107,12 @@ class ResumeParserService:
 
         if cgpa >= 8.5:
             strengths.append(f"Strong undergraduate academic performance ({cgpa}/10.0 CGPA).")
-
-        # Detect technical stack strengths
         skills_found = []
         for s in ["python", "pytorch", "react", "next.js", "docker", "kubernetes", "c++", "golang", "aws", "postgresql"]:
             if s in lower:
                 skills_found.append(s.capitalize())
         if skills_found:
             strengths.append(f"Core technical stack proficiencies: {', '.join(skills_found[:5])}.")
-
-        # Challenges / weaknesses
         if research_count == 0:
             challenges.append("No peer-reviewed publications or preprints detected; limits competitiveness for research-centric MS/PhD programs.")
         if not gre:
@@ -164,7 +149,6 @@ class ResumeParserService:
         try:
             result = await resume_agent.run(f"Extract profile data from this resume text:\n\n{snippet}")
             data = result.data
-            # If agent didn't populate strengths or challenges, run heuristic fallback to enrich
             if not data.detected_strengths or not data.detected_challenges:
                 fallback = self._heuristic_fallback_parse(snippet)
                 if not data.detected_strengths:

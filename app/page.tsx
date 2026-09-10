@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, Compass, Sparkles } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, Compass, Sparkles } from 'lucide-react';
 import { Shell } from '@/components/ui';
 
 export default function Home() {
@@ -30,6 +30,10 @@ export default function Home() {
               Evaluate my profile
               <ArrowRight className="ml-2 size-4" />
             </Link>
+            <Link href="/interview" className="inline-flex items-center justify-center rounded-xl border bg-card px-5 py-3.5 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary">
+              <Sparkles className="mr-2 size-4 text-primary" />
+              Practice AI Interview
+            </Link>
             <Link href="/history" className="inline-flex items-center justify-center rounded-xl border bg-card px-5 py-3.5 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary">
               View saved readouts
             </Link>
@@ -42,7 +46,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 border-t pt-8 md:grid-cols-3">
+        <section className="grid gap-4 border-t pt-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="animate-fade-up stagger-1 group flex gap-4 rounded-2xl border bg-card/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card">
             <Compass className="mt-1 size-5 text-primary" />
             <div>
@@ -63,9 +67,17 @@ export default function Home() {
             <Sparkles className="mt-1 size-5 text-primary" />
             <div>
               <h2 className="font-semibold">Advice that moves you</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Know which parts of your application to strengthen next.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Tailored roadmaps matching each university's criteria.</p>
             </div>
           </div>
+
+          <Link href="/interview" className="animate-fade-up stagger-4 group flex gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10">
+            <Bot className="mt-1 size-5 text-primary" />
+            <div>
+              <h2 className="font-semibold text-primary">AI Mock Interview</h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Live faculty panel simulations with instant scoring & feedback.</p>
+            </div>
+          </Link>
         </section>
       </main>
     </Shell>

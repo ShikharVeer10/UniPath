@@ -1,3 +1,4 @@
+import uuid
 from griffe import patch_loggers
 from fastapi import APIRouter,Depends,HTTPException,status
 from sqlmodel import select
@@ -13,9 +14,9 @@ router=APIRouter(prefix="/tracker",tags=["Application Tracker"])
 
 class TrackerCreateRequest(BaseModel):
     user_identifier:str
-    university_id:int
+    university_id:uuid.UUID
     status:Optional[str]="Shortlisted"
-    target_term=Optional[str]=None
+    target_term: Optional[str] = None
     deadline:Optional[str]=None
     notes:Optional[str]=None
 
@@ -28,7 +29,7 @@ class TrackerUpdateRequest(BaseModel):
 class TrackerResponse(BaseModel):
     id:int
     user_identifier:str
-    university_id:int
+    university_id:uuid.UUID
     university_name:Optional[str]=None
     status:str
     target_term:str
@@ -63,7 +64,7 @@ async def add_to_tracker(payload:TrackerCreateRequest,db:AsyncSession=Depends(ge
         university_name=uni.name,
         status=tracker_item.status,
         target_term=tracker_item.target_term,
-        dealine=tracker_item.deadline,
+        deadline=tracker_item.deadline,
         notes=tracker_item.notes
     )
 

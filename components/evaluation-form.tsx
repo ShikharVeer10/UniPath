@@ -83,6 +83,17 @@ export function EvaluationForm({ onResult, initialValue = initialDraft }: { onRe
         detected_challenges: parsed.detected_challenges || prev.detected_challenges,
       }));
       const strengthCount = parsed.detected_strengths?.length || 0;
+      // Persist to localStorage for interview personalization
+      if (typeof window !== 'undefined') {
+        const resumeSummary = [
+          `Target: ${parsed.target_program || 'Computer Science'}`,
+          `CGPA: ${parsed.cgpa ?? '8.0'}/10.0`,
+          parsed.research_papers ? `${parsed.research_papers} research publications/preprints` : '',
+          parsed.work_experience_months ? `${parsed.work_experience_months} months engineering experience` : '',
+          ...(parsed.detected_strengths || []),
+        ].filter(Boolean).join('. ');
+        localStorage.setItem('unipath_user_resume_summary', resumeSummary);
+      }
       setResumeSuccess(`Parsed ${file.name} successfully (${strengthCount} profile traits detected)`);
     } catch (err: any) {
       setErrors({ form: err?.message || 'Failed to extract resume details.' });
