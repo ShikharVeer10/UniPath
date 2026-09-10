@@ -39,6 +39,7 @@ import {
 import { Shell } from '@/components/ui';
 import { useAuth } from '@/components/auth-context';
 import { api } from '@/lib/api';
+import { getRandomCodingQuestion, CODING_QUESTIONS, type CodingQuestion } from '@/lib/coding-questions';
 
 type ChatMessage = {
   role: 'assistant' | 'user' | 'system';
@@ -79,18 +80,9 @@ function InterviewContent() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'live_call' | 'coding' | 'report'>('schedule');
 
   // LeetCode / Codeforces Coding Assessment State
-  const [codingQuestion, setCodingQuestion] = useState<{
-    id: string;
-    title: string;
-    platform: string;
-    difficulty: string;
-    category: string;
-    description: string;
-    testcases: Array<{ input: string; expected_output: string }>;
-    templates: Record<string, string>;
-  } | null>(null);
+  const [codingQuestion, setCodingQuestion] = useState<CodingQuestion>(CODING_QUESTIONS[0]);
   const [codingLang, setCodingLang] = useState<'python' | 'cpp' | 'c' | 'java'>('python');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState<string>(CODING_QUESTIONS[0].templates.python);
   const [codeRunning, setCodeRunning] = useState(false);
   const [codeRunResult, setCodeRunResult] = useState<any>(null);
   const [customInput, setCustomInput] = useState('');
@@ -333,15 +325,24 @@ function InterviewContent() {
   };
 
   const fetchRandomCodingQuestion = async (forcedLang?: 'python' | 'cpp' | 'c' | 'java') => {
+    const langToUse = forcedLang || codingLang;
     try {
       const q = await api.getRandomCodingQuestion();
-      setCodingQuestion(q);
-      const langToUse = forcedLang || codingLang;
-      if (q.templates && q.templates[langToUse]) {
-        setCode(q.templates[langToUse]);
+      if (q && q.title) {
+        setCodingQuestion(q);
+        if (q.templates && q.templates[langToUse]) {
+          setCode(q.templates[langToUse]);
+        }
+        return;
       }
     } catch (e: any) {
-      console.error('Failed to load random coding question:', e);
+      console.warn('API getRandomCodingQuestion unavailable, using built-in problem bank:', e);
+    }
+    // Reliable fallback: Load directly from curated problem bank
+    const fallbackQ = getRandomCodingQuestion();
+    setCodingQuestion(fallbackQ);
+    if (fallbackQ.templates && fallbackQ.templates[langToUse]) {
+      setCode(fallbackQ.templates[langToUse]);
     }
   };
 
