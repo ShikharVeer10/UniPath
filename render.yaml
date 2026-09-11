@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: unipath-backend
+    runtime: python
+    rootDir: Backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PROJECT_NAME
+        value: UniPath
+      - key: CORS_ORIGINS
+        value: '["http://localhost:3000","https://uni-path.vercel.app"]'
